@@ -71,9 +71,6 @@
   }
   td.cell:hover{filter:brightness(1.3);}
   td.cell.todo{border:1px dashed #333;}
-  tr.gap-above td, tr.gap-above th{padding-top:10px;}
-  .colgroup-gap td, .colgroup-gap th{}
-  td.gapL, th.gapL{margin-left:0;}
   /* 导出区 */
   #exportWrap{
     display:none; position:fixed; inset:0; background:rgba(0,0,0,.75);
@@ -240,8 +237,7 @@ function build(){
   COLS.forEach((c,i)=>{ html += `<th>${c}<br><span class="coord">x=${coordX(i)}</span></th>`; });
   html += '</tr>';
   for(let r=0;r<NR;r++){
-    const gapCls = (r===4||r===12) ? ' class="gap-above"' : '';
-    html += `<tr${gapCls}><th class="rowname">${ROWS[r]}<br><span class="coord">y=${coordY(r)}</span></th>`;
+    html += `<tr><th class="rowname">${ROWS[r]}<br><span class="coord">y=${coordY(r)}</span></th>`;
     for(let c=0;c<NC;c++){
       html += `<td class="cell" data-r="${r}" data-c="${c}" title="(${coordX(c)}, ${coordY(r)})"></td>`;
     }

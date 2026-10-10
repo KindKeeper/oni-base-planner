@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>缺氧基地布局涂色板 · 砖格版</title>
+<title>缺氧基地布局涂色板</title>
 <style>
   :root{
     --bg:#0f0f0f; --surface:#161616; --line:#2a2a2a; --text:#ffffff;
@@ -13,58 +13,68 @@
   body{
     background:var(--bg); color:var(--text);
     font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
-    height:100vh; display:flex; flex-direction:column; overflow:hidden;
+    min-height:100vh; display:flex; flex-direction:column;
   }
   header{
-    padding:10px 20px; border-bottom:1px solid var(--line);
+    padding:14px 20px; border-bottom:1px solid var(--line);
     display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
   }
-  header h1{font-size:17px; font-weight:700; letter-spacing:1px;}
+  header h1{font-size:18px; font-weight:700; letter-spacing:1px;}
   header h1 span{color:var(--accent);}
   header p{font-size:12px; color:var(--muted);}
-  header a{color:var(--accent); text-decoration:none;}
   main{flex:1; display:flex; min-height:0;}
+  /* 左侧面板 */
   #panel{
-    width:240px; flex-shrink:0; border-right:1px solid var(--line);
-    padding:12px; overflow-y:auto; background:var(--surface);
+    width:230px; flex-shrink:0; border-right:1px solid var(--line);
+    padding:14px; overflow-y:auto; background:var(--surface);
   }
-  #panel h2{font-size:12px; color:var(--muted); margin:12px 0 6px; font-weight:600; letter-spacing:2px;}
-  .toolrow{display:flex; gap:6px;}
-  .toolrow button{
-    flex:1; padding:7px; border-radius:6px; border:1px solid var(--line);
-    background:#1e1e1e; color:var(--text); font-size:13px; cursor:pointer; font-family:inherit;
-  }
-  .toolrow button.active{border-color:var(--accent); background:#1a2b2b; color:var(--accent);}
-  .cathead{font-size:11px; color:var(--accent2); margin:10px 0 4px; letter-spacing:2px; font-weight:600;}
+  #panel h2{font-size:12px; color:var(--muted); margin:0 0 8px; font-weight:600; letter-spacing:2px;}
+  .cathead{font-size:11px; color:var(--accent2); margin:12px 0 5px; letter-spacing:2px; font-weight:600;}
   .swatch{
     display:flex; align-items:center; gap:8px; width:100%;
-    padding:6px 8px; margin-bottom:3px; border:1px solid transparent;
+    padding:7px 8px; margin-bottom:4px; border:1px solid transparent;
     border-radius:6px; background:transparent; color:var(--text);
-    cursor:pointer; font-size:13px; text-align:left; font-family:inherit; user-select:none;
+    cursor:pointer; font-size:13px; text-align:left;
+    font-family:inherit; user-select:none;
   }
   .swatch:hover{background:#1e1e1e;}
   .swatch.active{border-color:var(--accent); background:#1a2b2b;}
   .swatch .chip{width:16px; height:16px; border-radius:4px; flex-shrink:0; border:1px solid #000;}
   .swatch .cnt{margin-left:auto; font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums;}
-  .actions{margin-top:12px; display:flex; flex-direction:column; gap:6px;}
+  .actions{margin-top:16px; display:flex; flex-direction:column; gap:8px;}
   .actions button{
-    padding:8px; border-radius:6px; border:1px solid var(--line);
-    background:#1e1e1e; color:var(--text); font-size:13px; cursor:pointer; font-family:inherit;
+    padding:9px; border-radius:6px; border:1px solid var(--line);
+    background:#1e1e1e; color:var(--text); font-size:13px; cursor:pointer;
+    font-family:inherit;
   }
   .actions button:hover{border-color:var(--accent2);}
-  .actions .row2{display:flex; gap:6px;}
-  .actions .row2 button{flex:1;}
   #exportBtn{background:var(--accent2); border-color:var(--accent2); font-weight:600;}
   #exportBtn:hover{filter:brightness(1.15);}
-  .hint{font-size:11px; color:var(--muted); margin-top:10px; line-height:1.7;}
-  #stage{flex:1; position:relative; min-width:0; background:#0a0a0a;}
-  #cv{position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:crosshair;}
-  #statusBar{
-    position:absolute; left:0; right:0; bottom:0; padding:5px 12px;
-    font-size:12px; color:var(--accent); background:rgba(10,10,10,.85);
-    border-top:1px solid var(--line); font-variant-numeric:tabular-nums;
-    pointer-events:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  /* 中央网格 */
+  #stage{flex:1; overflow:auto; padding:20px; display:flex; flex-direction:column; justify-content:flex-start; align-items:center;}
+  table.grid{border-collapse:separate; border-spacing:2px; user-select:none;}
+  table.grid th{
+    font-size:10px; color:var(--muted); font-weight:500;
+    padding:2px 3px; white-space:nowrap; writing-mode:horizontal-tb;
   }
+  table.grid th.rowname{text-align:right; padding-right:6px;}
+  .coord{color:var(--accent2); font-size:9px; font-weight:400;}
+  #coordBar{
+    margin-top:10px; font-size:13px; color:var(--accent);
+    font-variant-numeric:tabular-nums; min-height:18px; letter-spacing:1px;
+  }
+  td.cell{
+    width:60px; height:30px; border-radius:4px; cursor:crosshair;
+    font-size:11px; text-align:center; vertical-align:middle;
+    border:1px solid #000; font-weight:600; letter-spacing:1px;
+    transition:filter .08s;
+  }
+  td.cell:hover{filter:brightness(1.3);}
+  td.cell.todo{border:1px dashed #333;}
+  tr.gap-above td, tr.gap-above th{padding-top:10px;}
+  .colgroup-gap td, .colgroup-gap th{}
+  td.gapL, th.gapL{margin-left:0;}
+  /* 导出区 */
   #exportWrap{
     display:none; position:fixed; inset:0; background:rgba(0,0,0,.75);
     justify-content:center; align-items:center; z-index:10; padding:20px;
@@ -75,7 +85,7 @@
     width:min(900px,95vw); max-height:85vh; display:flex; flex-direction:column; padding:16px;
   }
   #exportBox h3{font-size:14px; margin-bottom:10px;}
-  #exportBox h3 span{color:var(--accent); font-weight:400; font-size:12px;}
+  #exportBox h3 span{color:var(--accent);}
   #exportText{
     flex:1; min-height:300px; background:#0a0a0a; color:#d4d4d4;
     border:1px solid var(--line); border-radius:6px; padding:10px;
@@ -87,54 +97,42 @@
     background:#1e1e1e; color:var(--text); cursor:pointer; font-family:inherit; font-size:13px;
   }
   #copyBtn{background:var(--accent); color:#000; border-color:var(--accent); font-weight:700;}
+  .hint{font-size:11px; color:var(--muted); margin-top:6px;}
   @media (max-width:760px){
     main{flex-direction:column;}
-    #panel{width:100%; border-right:none; border-bottom:1px solid var(--line);
-      display:flex; flex-wrap:wrap; gap:4px; max-height:45%;}
+    #panel{width:100%; border-right:none; border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; gap:4px;}
     #panel h2{width:100%;}
     .swatch{width:auto; padding:5px 8px;}
-    .actions{width:100%;}
+    .actions{width:100%; flex-direction:row;}
+    .actions button{flex:1;}
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>缺氧基地布局<span>涂色板·砖格版</span></h1>
-  <p>涂色单位 = 房间模块（内空 8×4，四周 1 砖墙，纵向共用楼板，横向 3 格通道井＝管/梯/杆，左右墙各留 2 格门位）｜背景 = 真实砖格｜坐标原点 (0,0)=打印舱 ｜<a href="./tiles.html">自由瓷砖绘制 →</a> <a href="./module.html">旧版 →</a></p>
+  <h1>缺氧基地布局<span>涂色板</span></h1>
+  <p>每格 = 1 个 4×8 模块单元（柱网 13 格宽）｜竖向相邻两格合并 = 72 格双联房｜坐标系：原点 (0,0)=打印舱单元（基地中×中4），x 东正、y 上正｜左侧选房间类型，点/拖格子涂色，涂完点「导出文本」贴回 Prompt</p>
 </header>
 <main>
   <div id="panel">
-    <h2>工具</h2>
-    <div class="toolrow">
-      <button id="tPaint" class="active">涂色</button>
-      <button id="tErase">橡皮</button>
-    </div>
     <h2>房间类型</h2>
     <div id="palette"></div>
     <div class="actions">
       <button id="exportBtn">导出文本（贴回 Prompt）</button>
-      <div class="row2">
-        <button id="resetBtn">重置为当前布局</button>
-        <button id="fitBtn">适应窗口</button>
-      </div>
+      <button id="resetBtn">重置为当前布局</button>
       <button id="clearBtn">全部清空</button>
     </div>
-    <p class="hint">
-      左键点/拖 = 涂模块｜右键拖动 = 擦除<br>
-      滚轮 = 缩放｜空格或中键拖动 = 平移｜双指捏合 = 缩放<br>
-      改动自动存浏览器；结构：内空 8×4、墙 1、楼板和隔壁模块共用、通道井 3 格（管/梯/杆）<br>
-      房间上限：宿舍/卫生≤64｜餐·厨·娱·医·电≤96（大会堂 100–120）｜公园 25–100
-    </p>
+    <p class="hint">拖动=连续涂色。「未分配」即橡皮。格子数量实时显示在类型右侧。</p>
   </div>
   <div id="stage">
-    <canvas id="cv"></canvas>
-    <div id="statusBar"></div>
+    <table class="grid" id="gridTable"></table>
+    <div id="coordBar">悬停格子显示坐标</div>
   </div>
 </main>
 
 <div id="exportWrap">
   <div id="exportBox">
-    <h3>导出结果 <span>— 复制后整段贴回 Prompt</span></h3>
+    <h3>导出结果 <span>— 复制后整段贴回 Prompt 的「框架·本档·基地总布局」</span></h3>
     <textarea id="exportText" readonly></textarea>
     <div class="rowbtns">
       <button id="copyBtn">复制</button>
@@ -144,88 +142,87 @@
 </div>
 
 <script>
-'use strict';
-// ── 房间类型（与原版涂色板一致）────────────────
+// ── 房间类型定义 ──────────────────────────────
 const TYPES = [
-  {id:'none',   cat:'基础·功能', name:'未分配',      short:'',   color:'#2a2a2a', dark:true},
+  // 基础·功能
+  {id:'none',   cat:'基础·功能', name:'未分配',      short:'·',   color:'#2a2a2a', dark:true},
   {id:'base',   cat:'基础·功能', name:'基地本体',    short:'基地', color:'#6c80e3'},
   {id:'transit',cat:'基础·功能', name:'交通',        short:'交通', color:'#4a5160'},
   {id:'pod',    cat:'基础·功能', name:'打印舱(原点)', short:'打印', color:'#ffffff', darkText:true},
   {id:'research',cat:'基础·功能', name:'科研',       short:'科研', color:'#8f6fe8'},
-  {id:'todo',   cat:'基础·功能', name:'待开发',      short:'待开', color:'#1c1c1c', dark:true},
+  {id:'todo',   cat:'基础·功能', name:'待开发',      short:'待开', color:'#1c1c1c', dark:true, dashed:true},
+  // 水·氧·电
   {id:'water',  cat:'水·氧·电', name:'水处理',       short:'水处', color:'#3a86ff'},
   {id:'pool',   cat:'水·氧·电', name:'蓄水池',       short:'水池', color:'#1d6fd1'},
   {id:'oxy',    cat:'水·氧·电', name:'电解制氧',     short:'电解', color:'#00c2cb'},
   {id:'h2',     cat:'水·氧·电', name:'氢气发电',     short:'氢电', color:'#ff9f1c'},
   {id:'manual', cat:'水·氧·电', name:'人力发电+电池', short:'人电', color:'#ffd60a', darkText:true},
-  {id:'power',  cat:'水·氧·电', name:'发电厂(电控站)', short:'电厂', color:'#e36414', max:96},
+  {id:'power',  cat:'水·氧·电', name:'发电厂(电控站)', short:'电厂', color:'#e36414'},
+  // 养殖·种植
   {id:'hatch',  cat:'养殖·种植', name:'哈奇塔',      short:'哈奇', color:'#b08968'},
   {id:'drecko', cat:'养殖·种植', name:'壁虎塔(纤维/塑料)', short:'壁虎', color:'#9c6644'},
   {id:'pacu',   cat:'养殖·种植', name:'帕库鱼池',    short:'鱼池', color:'#48cae4', darkText:true},
   {id:'shine',  cat:'养殖·种植', name:'发光虫(蛋/物种储备)', short:'光虫', color:'#e9ff70', darkText:true},
   {id:'sealed', cat:'养殖·种植', name:'封闭种养殖',  short:'种养', color:'#57cc99', darkText:true},
   {id:'farm',   cat:'养殖·种植', name:'农场(开放种植)', short:'农场', color:'#95d5b2', darkText:true},
-  {id:'dorm',   cat:'生活', name:'宿舍/卧室',        short:'宿舍', color:'#a3b8f0', darkText:true, max:64},
-  {id:'bath',   cat:'生活', name:'卫生间',           short:'卫生', color:'#90e0ef', darkText:true, max:64},
-  {id:'hall',   cat:'生活', name:'宴会厅/餐厅',      short:'餐厅', color:'#e76f51', max:96},
-  {id:'kitchen',cat:'生活', name:'厨房',             short:'厨房', color:'#ff6b6b', max:96},
-  {id:'rec',    cat:'生活', name:'娱乐室',           short:'娱乐', color:'#ff70a6', max:96},
-  {id:'med',    cat:'生活', name:'医疗室',           short:'医疗', color:'#d8bbff', darkText:true, max:96},
+  // 生活
+  {id:'dorm',   cat:'生活', name:'宿舍/卧室',        short:'宿舍', color:'#a3b8f0', darkText:true},
+  {id:'bath',   cat:'生活', name:'卫生间',           short:'卫生', color:'#90e0ef', darkText:true},
+  {id:'hall',   cat:'生活', name:'宴会厅/餐厅',      short:'餐厅', color:'#e76f51'},
+  {id:'kitchen',cat:'生活', name:'厨房',             short:'厨房', color:'#ff6b6b'},
+  {id:'rec',    cat:'生活', name:'娱乐室',           short:'娱乐', color:'#ff70a6'},
+  {id:'med',    cat:'生活', name:'医疗室',           short:'医疗', color:'#d8bbff', darkText:true},
   {id:'suit',   cat:'生活', name:'气压服站',         short:'气服', color:'#6c757d'},
+  // 工业·其他
   {id:'industry',cat:'工业·其他', name:'工业塔',     short:'工业', color:'#ef476f'},
   {id:'oil',    cat:'工业·其他', name:'油井/精炼',   short:'油井', color:'#7f5539'},
   {id:'storage',cat:'工业·其他', name:'仓储/轨道杂间', short:'仓储', color:'#6d6875'},
-  {id:'park',   cat:'工业·其他', name:'公园/自然保护区', short:'公园', color:'#2d6a4f', min:25, max:100},
+  {id:'park',   cat:'工业·其他', name:'公园/自然保护区', short:'公园', color:'#2d6a4f'},
   {id:'shaft',  cat:'工业·其他', name:'设备井(梯/竿/管线)', short:'井', color:'#5c677d'},
 ];
 const TYPE_MAP = Object.fromEntries(TYPES.map(t=>[t.id,t]));
-const CATS = ['基础·功能','水·氧·电','养殖·种植','生活','工业·其他'];
 
-// ── 网格与砖格几何 ────────────────────────────
-// 模块：11 列 × 15 行；每模块横向 13 砖 = 墙1+内空8+墙1+通道井3；纵向 5 砖 = 内空4+共用楼板1
+// ── 网格定义：11 列 × 15 行 ──────────────────
 const COLS = ['左外②','左外①','左二列','左一列','基地西','基地中','基地东','右一列','右二列','右外①','右外②'];
 const ROWS = ['上开1','上开2','上开3','交通·上','中1','中2','中3','中4','中5','中6','中7','交通·下','下开1','下开2','下开3'];
-const NC = COLS.length, NR = ROWS.length;
-const TW = 13, TH = 5;               // 每模块砖数（宽 / 高）
-const WT = NC*TW + 1, HT = NR*TH + 1; // 总砖数 144 × 76（含右封口墙、顶屋顶、底地面）
-// 打印舱（模块 5,7）内空左上角砖 = 瓷砖坐标 (0,0)
-const POD_TX = 5*TW + 1, POD_TY = 1 + 7*TH;
-const tileX = tx => tx - POD_TX;      // 砖→瓷砖坐标
-const tileY = ty => POD_TY - ty;
-const modX = c => c - 5;              // 模块坐标（同原版）
-const modY = r => 7 - r;
-// 模块 (c,r) 的砖格范围：内空 tx∈[c*13+1, c*13+8] ty∈[1+r*5, 1+r*5+3]；楼板 ty=5(r+1) tx∈[c*13, c*13+9]；墙 tx=c*13 / c*13+9；通道井 tx∈[c*13+10, c*13+12]
-const modInterior = (c,r) => ({x:c*TW+1, y:1+r*TH, w:8, h:4});
-const hasDoor = id => id !== 'none' && id !== 'todo';
+const NR = ROWS.length, NC = COLS.length;
+// 坐标系：原点(0,0)=打印舱所在单元（基地中×中4），x 向东为正，y 向上为正
+const coordX = c => c-5;
+const coordY = r => 7-r;
 
-// ── 预填：当前讨论的布局（同原版）─────────────
+// 预填：当前讨论的布局
 function prefill(){
   const g = Array.from({length:NR},()=>Array(NC).fill('none'));
   for(let c=0;c<NC;c++){
-    for(const r of [0,1,2,12,13,14]) g[r][c]='todo';
-    g[3][c]='transit'; g[11][c]='transit';
+    for(const r of [0,1,2,12,13,14]) g[r][c]='todo';      // 上/下开发行
+    g[3][c]='transit'; g[11][c]='transit';               // 两条交通行
   }
   for(let r=4;r<=10;r++){
-    g[r][0]='sealed'; g[r][1]='sealed';
-    g[r][9]='sealed'; g[r][10]='sealed';
-    g[r][2]='hatch';
-    g[r][8]='drecko';
+    g[r][0]='sealed'; g[r][1]='sealed';                  // 左外两列
+    g[r][9]='sealed'; g[r][10]='sealed';                 // 右外两列
+    g[r][2]='hatch';                                     // 左二列：哈奇塔
+    g[r][8]='drecko';                                    // 右二列：壁虎塔
   }
-  g[4][4]='suit';  g[4][5]='base';    g[4][6]='suit';
+  // 基地本体内部（y=+3~-3，定稿版）
+  g[4][4]='suit';  g[4][5]='base';    g[4][6]='suit';    // 气压服站（上口）
   g[5][4]='rec';   g[5][5]='hall';    g[5][6]='rec';
   g[6][4]='dorm';  g[6][5]='kitchen'; g[6][6]='dorm';
-  g[7][4]='dorm';  g[7][5]='pod';     g[7][6]='dorm';
+  g[7][4]='dorm';  g[7][5]='pod';     g[7][6]='dorm';    // 打印舱=原点(0,0)
   g[8][4]='dorm';  g[8][5]='bath';    g[8][6]='dorm';
   g[9][4]='med';   g[9][5]='bath';    g[9][6]='med';
-  g[10][4]='suit'; g[10][5]='base';   g[10][6]='suit';
+  g[10][4]='suit'; g[10][5]='base';   g[10][6]='suit';   // 气压服站（下口）
+  // 水池区：基地正下方 x∈[-1,+1], y∈[-5,-7]
   for(let r=12;r<=14;r++){ g[r][4]='pool'; g[r][5]='pool'; g[r][6]='pool'; }
+  // 工业塔两座：x∈[-3,-2] 与 x∈[+2,+3], y∈[-5,-7]
   for(let r=12;r<=14;r++){
     g[r][2]='industry'; g[r][3]='industry';
     g[r][7]='industry'; g[r][8]='industry';
   }
+  // 左一列（附属）：科研+人电，氢电在上、电解居中、水处理垫底
   g[4][3]='research'; g[5][3]='research'; g[6][3]='research';
   g[7][3]='manual';
   g[8][3]='h2'; g[9][3]='oxy'; g[10][3]='water';
+  // 右一列（附属）：发光虫/辐射源+人电，同序
   g[4][7]='shine'; g[5][7]='shine'; g[6][7]='shine';
   g[7][7]='manual';
   g[8][7]='h2'; g[9][7]='oxy'; g[10][7]='water';
@@ -233,420 +230,119 @@ function prefill(){
 }
 
 let grid = prefill();
-let cur = 'research';
-let mode = 'paint';   // paint | erase
-let painting = false, panning = false, spaceDown = false, hover = null, panStart = null;
-const pointers = new Map();
-let pinchD0 = 0, pinchS0 = 10;
+let current = 'research';
+let painting = false;
 
-// ── 存档 ─────────────────────────────────────
-const SKEY = 'oni-module-planner-brick-v1';
-function save(){
-  try{ localStorage.setItem(SKEY, JSON.stringify({v:1, grid})); }catch(e){}
-}
-let saveTimer = null;
-function saveSoon(){ clearTimeout(saveTimer); saveTimer = setTimeout(save, 600); }
-function load(){
-  try{
-    const s = JSON.parse(localStorage.getItem(SKEY));
-    if(s && s.v===1 && Array.isArray(s.grid) && s.grid.length===NR &&
-       s.grid.every(row => Array.isArray(row) && row.length===NC && row.every(v => v in TYPE_MAP))){
-      grid = s.grid;
-      return true;
+// ── 渲染 ─────────────────────────────────────
+const table = document.getElementById('gridTable');
+function build(){
+  let html = '<tr><th></th>';
+  COLS.forEach((c,i)=>{ html += `<th>${c}<br><span class="coord">x=${coordX(i)}</span></th>`; });
+  html += '</tr>';
+  for(let r=0;r<NR;r++){
+    const gapCls = (r===4||r===12) ? ' class="gap-above"' : '';
+    html += `<tr${gapCls}><th class="rowname">${ROWS[r]}<br><span class="coord">y=${coordY(r)}</span></th>`;
+    for(let c=0;c<NC;c++){
+      html += `<td class="cell" data-r="${r}" data-c="${c}" title="(${coordX(c)}, ${coordY(r)})"></td>`;
     }
-  }catch(e){}
-  return false;
+    html += '</tr>';
+  }
+  table.innerHTML = html;
 }
-window.addEventListener('beforeunload', save);
-document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') save(); });
-
-// ── 画布 ─────────────────────────────────────
-const cv = document.getElementById('cv');
-const ctx = cv.getContext('2d');
-const stage = document.getElementById('stage');
-const statusBar = document.getElementById('statusBar');
-let dpr = 1, cw = 0, ch = 0, dirty = true, viewInited = false;
-const view = {s:10, ox:0, oy:0};
-
-function resize(){
-  dpr = window.devicePixelRatio || 1;
-  cw = stage.clientWidth; ch = stage.clientHeight;
-  cv.width = Math.max(1, Math.round(cw*dpr));
-  cv.height = Math.max(1, Math.round(ch*dpr));
-  if(!viewInited && cw > 0){ fitView(); viewInited = true; }
-  dirty = true;
-}
-new ResizeObserver(resize).observe(stage);
-
-function fitView(){
-  const s = Math.min((cw-96)/WT, (ch-64)/HT);
-  view.s = Math.max(3, Math.min(28, s));
-  view.ox = 84;
-  view.oy = (ch - HT*view.s)/2 + 6;
-  dirty = true;
-}
-function zoomAt(mx, my, f){
-  const s2 = Math.max(3, Math.min(28, view.s*f));
-  const wx = (mx-view.ox)/view.s, wy = (my-view.oy)/view.s;
-  view.s = s2;
-  view.ox = mx - wx*s2;
-  view.oy = my - wy*s2;
-  dirty = true;
-}
-
-function loop(){
-  if(dirty){ dirty = false; render(); }
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-
-// 圆角矩形路径：房间色块/门/悬停用圆角，砖结构保持锐利
-function rr(x, y, w, h, r){
-  r = Math.max(0, Math.min(r, w/2, h/2));
-  ctx.beginPath();
-  if(ctx.roundRect){ ctx.roundRect(x, y, w, h, r); return; }
-  ctx.moveTo(x+r, y);
-  ctx.arcTo(x+w, y, x+w, y+h, r);
-  ctx.arcTo(x+w, y+h, x, y+h, r);
-  ctx.arcTo(x, y+h, x, y, r);
-  ctx.arcTo(x, y, x+w, y, r);
-  ctx.closePath();
-}
-
 function render(){
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.fillStyle = '#0a0a0a';
-  ctx.fillRect(0,0,cw,ch);
-  const {s, ox, oy} = view;
-  const rRoom = Math.min(s*0.9, 9);
-
-  // 通道井（11 条，每条 3 砖宽，纵贯全高：管/梯/杆）
-  ctx.fillStyle = '#141924';
-  for(let c=0;c<NC;c++){ rr(ox+(c*TW+10)*s, oy+s, 3*s, (HT-2)*s, Math.min(s*0.8, 8)); ctx.fill(); }
-  if(s >= 8){
-    ctx.font = `${Math.floor(s*0.75)}px sans-serif`;
-    ctx.fillStyle = 'rgba(122,144,182,.55)';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const glyph = ['管','梯','杆'];
-    for(let c=0;c<NC;c++){
-      for(let r=0;r<NR;r++){
-        const gy = oy + (1+r*TH+2)*s;
-        for(let k=0;k<3;k++){
-          ctx.fillText(glyph[k], ox+(c*TW+10+k+0.5)*s, gy);
-        }
-      }
-    }
-  }
-  // 楼板（每模块行底部 1 砖，span 含两侧墙、让开通道井；模块纵向共用）
-  ctx.fillStyle = '#4d5364';
-  for(let r=0;r<NR;r++){
-    const fy = oy + ((r+1)*TH)*s;
-    for(let c=0;c<NC;c++) ctx.fillRect(ox+c*TW*s, fy, 10*s, s);
-  }
-  // 纵向墙条（每列左/右墙，4 砖高 × 连续）
-  for(let c=0;c<NC;c++){
-    ctx.fillRect(ox+c*TW*s, oy+s, s, (HT-2)*s);
-    ctx.fillRect(ox+(c*TW+9)*s, oy+s, s, (HT-2)*s);
-  }
-  // 外圈：顶/底整排 + 右封口墙
-  ctx.fillRect(ox, oy, WT*s, s);
-  ctx.fillRect(ox, oy+(HT-1)*s, WT*s, s);
-  ctx.fillRect(ox+(WT-1)*s, oy, s, HT*s);
-
-  // 房间内空填色（圆角色块）
-  for(let r=0;r<NR;r++){
-    for(let c=0;c<NC;c++){
-      const t = grid[r][c];
-      const T = TYPE_MAP[t];
-      const m = modInterior(c,r);
-      ctx.fillStyle = t==='none' ? '#202024' : T.color;
-      rr(ox+m.x*s, oy+m.y*s, m.w*s, m.h*s, rRoom);
-      ctx.fill();
-      if(t === 'todo'){
-        ctx.strokeStyle = '#3a3a3a';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4,3]);
-        rr(ox+m.x*s+2, oy+m.y*s+2, m.w*s-4, m.h*s-4, rRoom);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-      if(s >= 6 && T.short){
-        ctx.font = `600 ${Math.min(14, Math.floor(s*0.9))}px sans-serif`;
-        ctx.fillStyle = T.dark ? '#555' : (T.darkText ? '#111' : '#fff');
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(T.short, ox+(m.x+4)*s, oy+(m.y+2)*s);
-      }
-    }
-  }
-  // 门（左右墙中部各 2 格，1 宽 × 2 高，圆角）
-  const rDoor = Math.min(3, s*0.35);
-  for(let r=0;r<NR;r++){
-    for(let c=0;c<NC;c++){
-      if(!hasDoor(grid[r][c])) continue;
-      const dy = oy + (1+r*TH+1)*s;
-      const lx = ox + (c*TW)*s, rx = ox + (c*TW+9)*s;
-      ctx.fillStyle = '#c9ced6';
-      rr(lx, dy, s, 2*s, rDoor); ctx.fill();
-      rr(rx, dy, s, 2*s, rDoor); ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,.55)';
-      ctx.lineWidth = 1;
-      rr(lx+.5, dy+.5, s-1, 2*s-1, rDoor); ctx.stroke();
-      rr(rx+.5, dy+.5, s-1, 2*s-1, rDoor); ctx.stroke();
-    }
-  }
-  // 原点轴线（打印舱内空左上角 = 模块/瓷砖双 (0,0)）
-  const x0 = ox + POD_TX*s, y0 = oy + POD_TY*s;
-  ctx.strokeStyle = 'rgba(0,254,252,.4)';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([6,5]);
-  ctx.beginPath();
-  if(x0 >= 0 && x0 <= cw){ ctx.moveTo(x0,0); ctx.lineTo(x0,ch); }
-  if(y0 >= 0 && y0 <= ch){ ctx.moveTo(0,y0); ctx.lineTo(cw,y0); }
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.strokeStyle = '#00fefc';
-  ctx.lineWidth = 2;
-  const m = Math.min(8, Math.max(4, s*0.6));
-  ctx.beginPath();
-  ctx.moveTo(x0-m,y0); ctx.lineTo(x0+m,y0);
-  ctx.moveTo(x0,y0-m); ctx.lineTo(x0,y0+m);
-  ctx.stroke();
-  if(s >= 9){
-    ctx.font = '11px sans-serif';
-    ctx.fillStyle = '#00fefc';
-    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
-    ctx.fillText('打印舱(0,0)', x0+8, y0-5);
-  }
-
-  drawLabels();
-
-  if(hover && !panning && !spaceDown){
-    const hx = ox + (hover.c*TW)*s, hy = oy + (1+hover.r*TH)*s;
-    ctx.strokeStyle = '#00fefc';
-    ctx.lineWidth = 2;
-    rr(hx+1, hy+1, TW*s-2, TH*s-2, Math.min(s*0.9, 9));
-    ctx.stroke();
-  }
-  updStatus();
-}
-
-function drawLabels(){
-  const {s, ox, oy} = view;
-  ctx.fillStyle = 'rgba(10,10,10,.88)';
-  ctx.fillRect(0,0,cw,34);
-  ctx.fillRect(0,0,80,ch);
-  ctx.textBaseline = 'middle';
-  for(let c=0;c<NC;c++){
-    const cx = ox + (c*TW+4.5)*s;
-    ctx.font = '11px sans-serif';
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.fillText(COLS[c], cx, 11);
-    ctx.font = '9px sans-serif';
-    ctx.fillStyle = '#6c80e3';
-    ctx.fillText('x=' + modX(c), cx, 25);
-  }
-  for(let r=0;r<NR;r++){
-    const cy = oy + (1+r*TH+2)*s;
-    ctx.font = '11px sans-serif';
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'right';
-    ctx.fillText(ROWS[r], 74, cy-6);
-    ctx.font = '9px sans-serif';
-    ctx.fillStyle = '#6c80e3';
-    ctx.fillText('y=' + modY(r), 74, cy+7);
-  }
-}
-
-function updStatus(){
-  const parts = [`模块网格 ${NC}×${NR}（每格 13×5 砖）`, `缩放 ${(+view.s.toFixed(1))} px/砖`];
-  if(hover){
-    const t = grid[hover.r][hover.c];
-    const m = modInterior(hover.c, hover.r);
-    parts.push(`模块(${modX(hover.c)},${modY(hover.r)}) ${COLS[hover.c]}·${ROWS[hover.r]} ${TYPE_MAP[t].name}`);
-    parts.push(`内空 8×4＝32格 @瓷砖(${tileX(m.x)},${tileY(m.y)})~(${tileX(m.x+7)},${tileY(m.y+3)})`);
-  }
-  statusBar.textContent = parts.join('　｜　');
-}
-
-// ── 调色板 ────────────────────────────────────
-const palette = document.getElementById('palette');
-CATS.forEach(cat=>{
-  const h = document.createElement('div');
-  h.className = 'cathead'; h.textContent = cat;
-  palette.appendChild(h);
-  TYPES.filter(t=>t.cat===cat).forEach(t=>{
-    const b = document.createElement('button');
-    b.className = 'swatch' + (t.id===cur?' active':'');
-    b.dataset.id = t.id;
-    b.innerHTML = `<span class="chip" style="background:${t.color}${t.dark?';border:1px dashed #555':''}"></span><span>${t.name}</span><span class="cnt">0</span>`;
-    b.onclick = ()=>{
-      cur = t.id;
-      document.getElementById('tPaint').classList.add('active');
-      document.getElementById('tErase').classList.remove('active');
-      mode = 'paint';
-      document.querySelectorAll('.swatch').forEach(x=>x.classList.toggle('active', x.dataset.id===cur));
-      dirty = true;
-    };
-    palette.appendChild(b);
+  table.querySelectorAll('td.cell').forEach(td=>{
+    const t = TYPE_MAP[grid[+td.dataset.r][+td.dataset.c]];
+    td.style.background = t.color;
+    td.style.color = t.dark ? '#666' : (t.darkText ? '#111' : '#fff');
+    td.textContent = t.short === '·' ? '' : t.short;
+    td.classList.toggle('todo', !!t.dashed);
   });
-});
-function updateCounts(){
+  // 计数
   const counts = {};
   grid.flat().forEach(id=>counts[id]=(counts[id]||0)+1);
   document.querySelectorAll('.swatch').forEach(sw=>{
     sw.querySelector('.cnt').textContent = counts[sw.dataset.id]||0;
   });
 }
-function afterChange(){ dirty = true; updateCounts(); saveSoon(); }
 
-// ── 交互 ─────────────────────────────────────
-function modAt(e){
-  const r = cv.getBoundingClientRect();
-  const tx = Math.floor((e.clientX-r.left-view.ox)/view.s);
-  const ty = Math.floor((e.clientY-r.top-view.oy)/view.s);
-  if(tx < 0 || tx >= WT || ty < 1 || ty >= HT-1) return null;
-  const c = Math.min(NC-1, Math.floor(tx/TW));
-  const rr = Math.min(NR-1, Math.max(0, Math.floor((ty-1)/TH)));
-  return {c, r:rr};
-}
-function paintAt(e, erase){
-  const m = modAt(e);
-  if(!m) return;
-  const v = erase ? 'none' : cur;
-  if(grid[m.r][m.c] !== v){ grid[m.r][m.c] = v; afterChange(); }
-}
+// ── 调色板 ────────────────────────────────────
+const palette = document.getElementById('palette');
+const CATS = ['基础·功能','水·氧·电','养殖·种植','生活','工业·其他'];
+CATS.forEach(cat=>{
+  const h = document.createElement('div');
+  h.className = 'cathead'; h.textContent = cat;
+  palette.appendChild(h);
+  TYPES.filter(t=>t.cat===cat).forEach(t=>{
+    const b = document.createElement('button');
+    b.className = 'swatch' + (t.id===current?' active':'');
+    b.dataset.id = t.id;
+    b.innerHTML = `<span class="chip" style="background:${t.color}${t.dashed?';border:1px dashed #555':''}"></span><span>${t.name}</span><span class="cnt">0</span>`;
+    b.onclick = ()=>{
+      current = t.id;
+      document.querySelectorAll('.swatch').forEach(x=>x.classList.toggle('active', x.dataset.id===current));
+    };
+    palette.appendChild(b);
+  });
+});
 
-cv.addEventListener('pointerdown', e=>{
+// ── 涂色交互 ──────────────────────────────────
+function paint(td){
+  const r=+td.dataset.r, c=+td.dataset.c;
+  if(grid[r][c]!==current){ grid[r][c]=current; render(); }
+}
+table.addEventListener('mousedown', e=>{
+  if(e.target.classList.contains('cell')){ painting=true; paint(e.target); e.preventDefault(); }
+});
+table.addEventListener('mouseover', e=>{
+  if(painting && e.target.classList.contains('cell')) paint(e.target);
+});
+document.addEventListener('mouseup', ()=>painting=false);
+// 悬停坐标显示
+const coordBar = document.getElementById('coordBar');
+table.addEventListener('mousemove', e=>{
+  if(e.target.classList.contains('cell')){
+    const r=+e.target.dataset.r, c=+e.target.dataset.c;
+    coordBar.textContent = `(${coordX(c)}, ${coordY(r)})　${COLS[c]}·${ROWS[r]}　—　${TYPE_MAP[grid[r][c]].name}`;
+  }
+});
+// 触屏
+table.addEventListener('touchstart', e=>{
+  const el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+  if(el && el.classList.contains('cell')){ painting=true; paint(el); e.preventDefault(); }
+},{passive:false});
+table.addEventListener('touchmove', e=>{
+  if(!painting) return;
+  const el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+  if(el && el.classList.contains('cell')) paint(el);
   e.preventDefault();
-  cv.setPointerCapture(e.pointerId);
-  const r = cv.getBoundingClientRect();
-  pointers.set(e.pointerId, {x:e.clientX-r.left, y:e.clientY-r.top});
-  if(pointers.size === 2){
-    painting = false; panning = false;
-    const [a,b] = [...pointers.values()];
-    pinchD0 = Math.hypot(a.x-b.x, a.y-b.y) || 1;
-    pinchS0 = view.s;
-    return;
-  }
-  if(e.button === 1 || spaceDown){
-    panning = true;
-    panStart = {mx:e.clientX-r.left, my:e.clientY-r.top, ox:view.ox, oy:view.oy};
-    return;
-  }
-  painting = true;
-  paintAt(e, e.button === 2 || mode === 'erase');
-});
-cv.addEventListener('pointermove', e=>{
-  const r = cv.getBoundingClientRect();
-  const mx = e.clientX-r.left, my = e.clientY-r.top;
-  if(pointers.has(e.pointerId)) pointers.set(e.pointerId, {x:mx, y:my});
-  if(pointers.size === 2 && pinchD0){
-    const [a,b] = [...pointers.values()];
-    const d = Math.hypot(a.x-b.x, a.y-b.y) || 1;
-    const mid = {x:(a.x+b.x)/2, y:(a.y+b.y)/2};
-    zoomAt(mid.x, mid.y, (pinchS0*d/pinchD0)/view.s);
-    return;
-  }
-  if(panning){
-    view.ox = panStart.ox + (mx-panStart.mx);
-    view.oy = panStart.oy + (my-panStart.my);
-    dirty = true;
-    return;
-  }
-  const m = modAt(e);
-  const changed = (m && !hover) || (!m && hover) ||
-    (m && hover && (m.c!==hover.c || m.r!==hover.r));
-  hover = m;
-  if(changed) dirty = true;
-  if(painting) paintAt(e, e.buttons === 2 || mode === 'erase');
-});
-function endPointer(e){
-  pointers.delete(e.pointerId);
-  if(pointers.size < 2) pinchD0 = 0;
-  if(panning) panning = false;
-  if(painting){ painting = false; save(); }
-}
-cv.addEventListener('pointerup', endPointer);
-cv.addEventListener('pointercancel', endPointer);
-cv.addEventListener('contextmenu', e=>e.preventDefault());
-cv.addEventListener('wheel', e=>{
-  e.preventDefault();
-  const r = cv.getBoundingClientRect();
-  zoomAt(e.clientX-r.left, e.clientY-r.top, Math.exp(-e.deltaY*0.0012));
-}, {passive:false});
-
-window.addEventListener('keydown', e=>{
-  if(e.code === 'Space'){ spaceDown = true; e.preventDefault(); }
-  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); }
-});
-window.addEventListener('keyup', e=>{ if(e.code === 'Space') spaceDown = false; });
+},{passive:false});
+table.addEventListener('touchend', ()=>painting=false);
 
 // ── 按钮 ─────────────────────────────────────
-document.getElementById('tPaint').onclick = function(){ mode='paint'; this.classList.add('active'); document.getElementById('tErase').classList.remove('active'); dirty=true; };
-document.getElementById('tErase').onclick = function(){ mode='erase'; this.classList.add('active'); document.getElementById('tPaint').classList.remove('active'); dirty=true; };
-document.getElementById('resetBtn').onclick = ()=>{ grid = prefill(); afterChange(); save(); };
-document.getElementById('clearBtn').onclick = ()=>{
-  if(confirm('确定清空整个布局？')){
-    grid = Array.from({length:NR},()=>Array(NC).fill('none'));
-    afterChange(); save();
-  }
-};
-document.getElementById('fitBtn').onclick = fitView;
-
-// ── 导出：按列纵向合并 → 瓷砖坐标矩形 ────────
-function columnRuns(){
-  const runs = [];
-  for(let c=0;c<NC;c++){
-    let r = 0;
-    while(r < NR){
-      const t = grid[r][c];
-      if(t === 'none'){ r++; continue; }
-      let r2 = r;
-      while(r2+1 < NR && grid[r2+1][c] === t) r2++;
-      runs.push({t, c, r1:r, r2});
-      r = r2 + 1;
-    }
-  }
-  return runs;
-}
-function buildExportText(){
-  const runs = columnRuns();
-  const counts = {};
-  grid.flat().forEach(id=>counts[id]=(counts[id]||0)+1);
-  const L = [];
-  L.push('缺氧基地布局（模块涂色 + 真实砖格背景）');
-  L.push('结构约定：房间模块内空 8×4 格，四周 1 格砖墙；纵向相邻模块共用 1 层楼板（两格合并 = 8×9=72 格双联房）；横向模块间为 3 格宽通道井（运载管道/梯子/金属滑杆各 1 格）；每个模块左右墙中部各预留 2 格门位');
-  L.push('坐标：模块坐标原点(0,0)=打印舱（基地中×中4），x 东正、y 上正；瓷砖坐标原点=打印舱房间内空左上角，x 东正、y 上正（均为包含端点的格坐标）');
-  L.push('');
-  L.push('房间纵列清单（同列同类型连续模块已合并；横向同类型模块之间有通道井，为独立房间）：');
-  TYPES.forEach(T=>{
-    const rs = runs.filter(x=>x.t===T.id);
-    if(!rs.length) return;
-    L.push(`【${T.name}】${counts[T.id]} 模块：`);
-    rs.forEach(x=>{
-      const tx1 = x.c*TW+1, tx2 = x.c*TW+8;
-      const ty1 = 1+x.r1*TH, ty2 = 1+x.r2*TH+3;
-      const w = 8, h = (x.r2-x.r1)*TH + 4, n = w*h;
-      let line = `- 模块 x=${modX(x.c)}（${COLS[x.c]}）行 ${ROWS[x.r1]}~${ROWS[x.r2]}（y=${modY(x.r1)}~${modY(x.r2)}）→ 瓷砖(${tileX(tx1)},${tileY(ty1)})~(${tileX(tx2)},${tileY(ty2)}) 内空 ${w}×${h}=${n}格`;
-      if(T.max && n > T.max) line += ` ⚠超房间上限${T.max}`;
-      if(T.min && n < T.min) line += ` ⚠小于下限${T.min}`;
-      L.push(line);
-    });
-  });
-  L.push('');
-  L.push('格数统计（按模块）：');
-  TYPES.forEach(T=>{ if(counts[T.id]) L.push(`- ${T.name}：${counts[T.id]} 模块（${(counts[T.id]*32)} 格内空）`); });
-  return L.join('\n');
-}
+document.getElementById('resetBtn').onclick = ()=>{ grid = prefill(); render(); };
+document.getElementById('clearBtn').onclick = ()=>{ grid = Array.from({length:NR},()=>Array(NC).fill('none')); render(); };
 
 document.getElementById('exportBtn').onclick = ()=>{
-  document.getElementById('exportText').value = buildExportText();
+  const lines = [];
+  lines.push('基地总布局涂色表（每格=1 个 4×8 模块单元，柱网 13 格宽）');
+  lines.push('坐标系：原点 (0,0)=打印舱所在单元（基地中×中4），x 东正、y 上正');
+  lines.push('');
+  lines.push('| 行＼列 | ' + COLS.map((c,i)=>`${c}(x=${coordX(i)})`).join(' | ') + ' |');
+  lines.push('|' + '---|'.repeat(NC+1));
+  for(let r=0;r<NR;r++){
+    lines.push('| ' + `${ROWS[r]}(y=${coordY(r)})` + ' | ' + grid[r].map(id=>TYPE_MAP[id].name).join(' | ') + ' |');
+  }
+  lines.push('');
+  lines.push('格数统计：');
+  const counts = {};
+  grid.flat().forEach(id=>counts[id]=(counts[id]||0)+1);
+  TYPES.forEach(t=>{ if(counts[t.id]) lines.push(`- ${t.name}：${counts[t.id]} 格`); });
+  document.getElementById('exportText').value = lines.join('\n');
   document.getElementById('exportWrap').classList.add('show');
 };
 document.getElementById('closeBtn').onclick = ()=>document.getElementById('exportWrap').classList.remove('show');
 document.getElementById('exportWrap').addEventListener('click', e=>{
-  if(e.target.id === 'exportWrap') e.target.classList.remove('show');
+  if(e.target.id==='exportWrap') e.target.classList.remove('show');
 });
 document.getElementById('copyBtn').onclick = ()=>{
   const ta = document.getElementById('exportText');
@@ -656,9 +352,7 @@ document.getElementById('copyBtn').onclick = ()=>{
   setTimeout(()=>document.getElementById('copyBtn').textContent='复制', 1200);
 };
 
-// ── 启动 ─────────────────────────────────────
-load();
-updateCounts();
+build(); render();
 </script>
 </body>
 </html>

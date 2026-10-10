@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>缺氧基地布局涂色板</title>
+<style>
+  :root{
+    --bg:#0f0f0f; --surface:#161616; --line:#2a2a2a; --text:#ffffff;
+    --muted:#9a9a9a; --accent:#00fefc; --accent2:#6c80e3;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    min-height:100vh; display:flex; flex-direction:column;
+  }
+  header{
+    padding:14px 20px; border-bottom:1px solid var(--line);
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  }
+  header h1{font-size:18px; font-weight:700; letter-spacing:1px;}
+  header h1 span{color:var(--accent);}
+  header p{font-size:12px; color:var(--muted);}
+  main{flex:1; display:flex; min-height:0;}
+  /* 左侧面板 */
+  #panel{
+    width:230px; flex-shrink:0; border-right:1px solid var(--line);
+    padding:14px; overflow-y:auto; background:var(--surface);
+  }
+  #panel h2{font-size:12px; color:var(--muted); margin:0 0 8px; font-weight:600; letter-spacing:2px;}
+  .cathead{font-size:11px; color:var(--accent2); margin:12px 0 5px; letter-spacing:2px; font-weight:600;}
+  .swatch{
+    display:flex; align-items:center; gap:8px; width:100%;
+    padding:7px 8px; margin-bottom:4px; border:1px solid transparent;
+    border-radius:6px; background:transparent; color:var(--text);
+    cursor:pointer; font-size:13px; text-align:left;
+    font-family:inherit; user-select:none;
+  }
+  .swatch:hover{background:#1e1e1e;}
+  .swatch.active{border-color:var(--accent); background:#1a2b2b;}
+  .swatch .chip{width:16px; height:16px; border-radius:4px; flex-shrink:0; border:1px solid #000;}
+  .swatch .cnt{margin-left:auto; font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .actions{margin-top:16px; display:flex; flex-direction:column; gap:8px;}
+  .actions button{
+    padding:9px; border-radius:6px; border:1px solid var(--line);
+    background:#1e1e1e; color:var(--text); font-size:13px; cursor:pointer;
+    font-family:inherit;
+  }
+  .actions button:hover{border-color:var(--accent2);}
+  #exportBtn{background:var(--accent2); border-color:var(--accent2); font-weight:600;}
+  #exportBtn:hover{filter:brightness(1.15);}
+  /* 中央网格 */
+  #stage{flex:1; overflow:auto; padding:20px; display:flex; flex-direction:column; justify-content:flex-start; align-items:center;}
+  table.grid{border-collapse:separate; border-spacing:2px; user-select:none;}
+  table.grid th{
+    font-size:10px; color:var(--muted); font-weight:500;
+    padding:2px 3px; white-space:nowrap; writing-mode:horizontal-tb;
+  }
+  table.grid th.rowname{text-align:right; padding-right:6px;}
+  .coord{color:var(--accent2); font-size:9px; font-weight:400;}
+  #coordBar{
+    margin-top:10px; font-size:13px; color:var(--accent);
+    font-variant-numeric:tabular-nums; min-height:18px; letter-spacing:1px;
+  }
+  td.cell{
+    width:52px; height:30px; border-radius:4px; cursor:crosshair;
+    font-size:11px; text-align:center; vertical-align:middle;
+    border:1px solid #000; font-weight:600; letter-spacing:1px;
+    transition:filter .08s;
+  }
+  td.cell:hover{filter:brightness(1.3);}
+  td.cell.todo{border:1px dashed #333;}
+  tr.gap-above td, tr.gap-above th{padding-top:10px;}
+  .colgroup-gap td, .colgroup-gap th{}
+  td.gapL, th.gapL{margin-left:0;}
+  /* 导出区 */
+  #exportWrap{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.75);
+    justify-content:center; align-items:center; z-index:10; padding:20px;
+  }
+  #exportWrap.show{display:flex;}
+  #exportBox{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    width:min(900px,95vw); max-height:85vh; display:flex; flex-direction:column; padding:16px;
+  }
+  #exportBox h3{font-size:14px; margin-bottom:10px;}
+  #exportBox h3 span{color:var(--accent);}
+  #exportText{
+    flex:1; min-height:300px; background:#0a0a0a; color:#d4d4d4;
+    border:1px solid var(--line); border-radius:6px; padding:10px;
+    font-family:"SF Mono",Consolas,monospace; font-size:12px; resize:none;
+  }
+  #exportBox .rowbtns{display:flex; gap:8px; margin-top:10px; justify-content:flex-end;}
+  #exportBox .rowbtns button{
+    padding:8px 16px; border-radius:6px; border:1px solid var(--line);
+    background:#1e1e1e; color:var(--text); cursor:pointer; font-family:inherit; font-size:13px;
+  }
+  #copyBtn{background:var(--accent); color:#000; border-color:var(--accent); font-weight:700;}
+  .hint{font-size:11px; color:var(--muted); margin-top:6px;}
+  @media (max-width:760px){
+    main{flex-direction:column;}
+    #panel{width:100%; border-right:none; border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; gap:4px;}
+    #panel h2{width:100%;}
+    .swatch{width:auto; padding:5px 8px;}
+    .actions{width:100%; flex-direction:row;}
+    .actions button{flex:1;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>缺氧基地布局<span>涂色板</span></h1>
+  <p>每格 = 1 个 4×8 模块单元（柱网 13 格宽）｜竖向相邻两格合并 = 72 格双联房｜坐标系：原点 (0,0)=打印舱单元（基地中×中4），x 东正、y 上正｜左侧选房间类型，点/拖格子涂色，涂完点「导出文本」贴回 Prompt ｜<a href="./index.html" style="color:var(--accent)">新版：瓷砖视图 →</a></p>
+</header>
+<main>
+  <div id="panel">
+    <h2>房间类型</h2>
+    <div id="palette"></div>
+    <div class="actions">
+      <button id="exportBtn">导出文本（贴回 Prompt）</button>
+      <button id="resetBtn">重置为当前布局</button>
+      <button id="clearBtn">全部清空</button>
+    </div>
+    <p class="hint">拖动=连续涂色。「未分配」即橡皮。格子数量实时显示在类型右侧。</p>
+  </div>
+  <div id="stage">
+    <table class="grid" id="gridTable"></table>
+    <div id="coordBar">悬停格子显示坐标</div>
+  </div>
+</main>
+
+<div id="exportWrap">
+  <div id="exportBox">
+    <h3>导出结果 <span>— 复制后整段贴回 Prompt 的「框架·本档·基地总布局」</span></h3>
+    <textarea id="exportText" readonly></textarea>
+    <div class="rowbtns">
+      <button id="copyBtn">复制</button>
+      <button id="closeBtn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 房间类型定义 ──────────────────────────────
+const TYPES = [
+  // 基础·功能
+  {id:'none',   cat:'基础·功能', name:'未分配',      short:'·',   color:'#2a2a2a', dark:true},
+  {id:'base',   cat:'基础·功能', name:'基地本体',    short:'基地', color:'#6c80e3'},
+  {id:'transit',cat:'基础·功能', name:'交通',        short:'交通', color:'#4a5160'},
+  {id:'pod',    cat:'基础·功能', name:'打印舱(原点)', short:'打印', color:'#ffffff', darkText:true},
+  {id:'research',cat:'基础·功能', name:'科研',       short:'科研', color:'#8f6fe8'},
+  {id:'todo',   cat:'基础·功能', name:'待开发',      short:'待开', color:'#1c1c1c', dark:true, dashed:true},
+  // 水·氧·电
+  {id:'water',  cat:'水·氧·电', name:'水处理',       short:'水处', color:'#3a86ff'},
+  {id:'pool',   cat:'水·氧·电', name:'蓄水池',       short:'水池', color:'#1d6fd1'},
+  {id:'oxy',    cat:'水·氧·电', name:'电解制氧',     short:'电解', color:'#00c2cb'},
+  {id:'h2',     cat:'水·氧·电', name:'氢气发电',     short:'氢电', color:'#ff9f1c'},
+  {id:'manual', cat:'水·氧·电', name:'人力发电+电池', short:'人电', color:'#ffd60a', darkText:true},
+  {id:'power',  cat:'水·氧·电', name:'发电厂(电控站)', short:'电厂', color:'#e36414'},
+  // 养殖·种植
+  {id:'hatch',  cat:'养殖·种植', name:'哈奇塔',      short:'哈奇', color:'#b08968'},
+  {id:'drecko', cat:'养殖·种植', name:'壁虎塔(纤维/塑料)', short:'壁虎', color:'#9c6644'},
+  {id:'pacu',   cat:'养殖·种植', name:'帕库鱼池',    short:'鱼池', color:'#48cae4', darkText:true},
+  {id:'shine',  cat:'养殖·种植', name:'发光虫(蛋/物种储备)', short:'光虫', color:'#e9ff70', darkText:true},
+  {id:'sealed', cat:'养殖·种植', name:'封闭种养殖',  short:'种养', color:'#57cc99', darkText:true},
+  {id:'farm',   cat:'养殖·种植', name:'农场(开放种植)', short:'农场', color:'#95d5b2', darkText:true},
+  // 生活
+  {id:'dorm',   cat:'生活', name:'宿舍/卧室',        short:'宿舍', color:'#a3b8f0', darkText:true},
+  {id:'bath',   cat:'生活', name:'卫生间',           short:'卫生', color:'#90e0ef', darkText:true},
+  {id:'hall',   cat:'生活', name:'宴会厅/餐厅',      short:'餐厅', color:'#e76f51'},
+  {id:'kitchen',cat:'生活', name:'厨房',             short:'厨房', color:'#ff6b6b'},
+  {id:'rec',    cat:'生活', name:'娱乐室',           short:'娱乐', color:'#ff70a6'},
+  {id:'med',    cat:'生活', name:'医疗室',           short:'医疗', color:'#d8bbff', darkText:true},
+  {id:'suit',   cat:'生活', name:'气压服站',         short:'气服', color:'#6c757d'},
+  // 工业·其他
+  {id:'industry',cat:'工业·其他', name:'工业塔',     short:'工业', color:'#ef476f'},
+  {id:'oil',    cat:'工业·其他', name:'油井/精炼',   short:'油井', color:'#7f5539'},
+  {id:'storage',cat:'工业·其他', name:'仓储/轨道杂间', short:'仓储', color:'#6d6875'},
+  {id:'park',   cat:'工业·其他', name:'公园/自然保护区', short:'公园', color:'#2d6a4f'},
+  {id:'shaft',  cat:'工业·其他', name:'设备井(梯/竿/管线)', short:'井', color:'#5c677d'},
+];
+const TYPE_MAP = Object.fromEntries(TYPES.map(t=>[t.id,t]));
+
+// ── 网格定义：11 列 × 15 行 ──────────────────
+const COLS = ['左外②','左外①','左二列','左一列','基地西','基地中','基地东','右一列','右二列','右外①','右外②'];
+const ROWS = ['上开1','上开2','上开3','交通·上','中1','中2','中3','中4','中5','中6','中7','交通·下','下开1','下开2','下开3'];
+const NR = ROWS.length, NC = COLS.length;
+// 坐标系：原点(0,0)=打印舱所在单元（基地中×中4），x 向东为正，y 向上为正
+const coordX = c => c-5;
+const coordY = r => 7-r;
+
+// 预填：当前讨论的布局
+function prefill(){
+  const g = Array.from({length:NR},()=>Array(NC).fill('none'));
+  for(let c=0;c<NC;c++){
+    for(const r of [0,1,2,12,13,14]) g[r][c]='todo';      // 上/下开发行
+    g[3][c]='transit'; g[11][c]='transit';               // 两条交通行
+  }
+  for(let r=4;r<=10;r++){
+    g[r][0]='sealed'; g[r][1]='sealed';                  // 左外两列
+    g[r][9]='sealed'; g[r][10]='sealed';                 // 右外两列
+    g[r][2]='hatch';                                     // 左二列：哈奇塔
+    g[r][8]='drecko';                                    // 右二列：壁虎塔
+  }
+  // 基地本体内部（y=+3~-3，定稿版）
+  g[4][4]='suit';  g[4][5]='base';    g[4][6]='suit';    // 气压服站（上口）
+  g[5][4]='rec';   g[5][5]='hall';    g[5][6]='rec';
+  g[6][4]='dorm';  g[6][5]='kitchen'; g[6][6]='dorm';
+  g[7][4]='dorm';  g[7][5]='pod';     g[7][6]='dorm';    // 打印舱=原点(0,0)
+  g[8][4]='dorm';  g[8][5]='bath';    g[8][6]='dorm';
+  g[9][4]='med';   g[9][5]='bath';    g[9][6]='med';
+  g[10][4]='suit'; g[10][5]='base';   g[10][6]='suit';   // 气压服站（下口）
+  // 水池区：基地正下方 x∈[-1,+1], y∈[-5,-7]
+  for(let r=12;r<=14;r++){ g[r][4]='pool'; g[r][5]='pool'; g[r][6]='pool'; }
+  // 工业塔两座：x∈[-3,-2] 与 x∈[+2,+3], y∈[-5,-7]
+  for(let r=12;r<=14;r++){
+    g[r][2]='industry'; g[r][3]='industry';
+    g[r][7]='industry'; g[r][8]='industry';
+  }
+  // 左一列（附属）：科研+人电，氢电在上、电解居中、水处理垫底
+  g[4][3]='research'; g[5][3]='research'; g[6][3]='research';
+  g[7][3]='manual';
+  g[8][3]='h2'; g[9][3]='oxy'; g[10][3]='water';
+  // 右一列（附属）：发光虫/辐射源+人电，同序
+  g[4][7]='shine'; g[5][7]='shine'; g[6][7]='shine';
+  g[7][7]='manual';
+  g[8][7]='h2'; g[9][7]='oxy'; g[10][7]='water';
+  return g;
+}
+
+let grid = prefill();
+let current = 'research';
+let painting = false;
+
+// ── 渲染 ─────────────────────────────────────
+const table = document.getElementById('gridTable');
+function build(){
+  let html = '<tr><th></th>';
+  COLS.forEach((c,i)=>{ html += `<th>${c}<br><span class="coord">x=${coordX(i)}</span></th>`; });
+  html += '</tr>';
+  for(let r=0;r<NR;r++){
+    const gapCls = (r===4||r===12) ? ' class="gap-above"' : '';
+    html += `<tr${gapCls}><th class="rowname">${ROWS[r]}<br><span class="coord">y=${coordY(r)}</span></th>`;
+    for(let c=0;c<NC;c++){
+      html += `<td class="cell" data-r="${r}" data-c="${c}" title="(${coordX(c)}, ${coordY(r)})"></td>`;
+    }
+    html += '</tr>';
+  }
+  table.innerHTML = html;
+}
+function render(){
+  table.querySelectorAll('td.cell').forEach(td=>{
+    const t = TYPE_MAP[grid[+td.dataset.r][+td.dataset.c]];
+    td.style.background = t.color;
+    td.style.color = t.dark ? '#666' : (t.darkText ? '#111' : '#fff');
+    td.textContent = t.short === '·' ? '' : t.short;
+    td.classList.toggle('todo', !!t.dashed);
+  });
+  // 计数
+  const counts = {};
+  grid.flat().forEach(id=>counts[id]=(counts[id]||0)+1);
+  document.querySelectorAll('.swatch').forEach(sw=>{
+    sw.querySelector('.cnt').textContent = counts[sw.dataset.id]||0;
+  });
+}
+
+// ── 调色板 ────────────────────────────────────
+const palette = document.getElementById('palette');
+const CATS = ['基础·功能','水·氧·电','养殖·种植','生活','工业·其他'];
+CATS.forEach(cat=>{
+  const h = document.createElement('div');
+  h.className = 'cathead'; h.textContent = cat;
+  palette.appendChild(h);
+  TYPES.filter(t=>t.cat===cat).forEach(t=>{
+    const b = document.createElement('button');
+    b.className = 'swatch' + (t.id===current?' active':'');
+    b.dataset.id = t.id;
+    b.innerHTML = `<span class="chip" style="background:${t.color}${t.dashed?';border:1px dashed #555':''}"></span><span>${t.name}</span><span class="cnt">0</span>`;
+    b.onclick = ()=>{
+      current = t.id;
+      document.querySelectorAll('.swatch').forEach(x=>x.classList.toggle('active', x.dataset.id===current));
+    };
+    palette.appendChild(b);
+  });
+});
+
+// ── 涂色交互 ──────────────────────────────────
+function paint(td){
+  const r=+td.dataset.r, c=+td.dataset.c;
+  if(grid[r][c]!==current){ grid[r][c]=current; render(); }
+}
+table.addEventListener('mousedown', e=>{
+  if(e.target.classList.contains('cell')){ painting=true; paint(e.target); e.preventDefault(); }
+});
+table.addEventListener('mouseover', e=>{
+  if(painting && e.target.classList.contains('cell')) paint(e.target);
+});
+document.addEventListener('mouseup', ()=>painting=false);
+// 悬停坐标显示
+const coordBar = document.getElementById('coordBar');
+table.addEventListener('mousemove', e=>{
+  if(e.target.classList.contains('cell')){
+    const r=+e.target.dataset.r, c=+e.target.dataset.c;
+    coordBar.textContent = `(${coordX(c)}, ${coordY(r)})　${COLS[c]}·${ROWS[r]}　—　${TYPE_MAP[grid[r][c]].name}`;
+  }
+});
+// 触屏
+table.addEventListener('touchstart', e=>{
+  const el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+  if(el && el.classList.contains('cell')){ painting=true; paint(el); e.preventDefault(); }
+},{passive:false});
+table.addEventListener('touchmove', e=>{
+  if(!painting) return;
+  const el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+  if(el && el.classList.contains('cell')) paint(el);
+  e.preventDefault();
+},{passive:false});
+table.addEventListener('touchend', ()=>painting=false);
+
+// ── 按钮 ─────────────────────────────────────
+document.getElementById('resetBtn').onclick = ()=>{ grid = prefill(); render(); };
+document.getElementById('clearBtn').onclick = ()=>{ grid = Array.from({length:NR},()=>Array(NC).fill('none')); render(); };
+
+document.getElementById('exportBtn').onclick = ()=>{
+  const lines = [];
+  lines.push('基地总布局涂色表（每格=1 个 4×8 模块单元，柱网 13 格宽）');
+  lines.push('坐标系：原点 (0,0)=打印舱所在单元（基地中×中4），x 东正、y 上正');
+  lines.push('');
+  lines.push('| 行＼列 | ' + COLS.map((c,i)=>`${c}(x=${coordX(i)})`).join(' | ') + ' |');
+  lines.push('|' + '---|'.repeat(NC+1));
+  for(let r=0;r<NR;r++){
+    lines.push('| ' + `${ROWS[r]}(y=${coordY(r)})` + ' | ' + grid[r].map(id=>TYPE_MAP[id].name).join(' | ') + ' |');
+  }
+  lines.push('');
+  lines.push('格数统计：');
+  const counts = {};
+  grid.flat().forEach(id=>counts[id]=(counts[id]||0)+1);
+  TYPES.forEach(t=>{ if(counts[t.id]) lines.push(`- ${t.name}：${counts[t.id]} 格`); });
+  document.getElementById('exportText').value = lines.join('\n');
+  document.getElementById('exportWrap').classList.add('show');
+};
+document.getElementById('closeBtn').onclick = ()=>document.getElementById('exportWrap').classList.remove('show');
+document.getElementById('exportWrap').addEventListener('click', e=>{
+  if(e.target.id==='exportWrap') e.target.classList.remove('show');
+});
+document.getElementById('copyBtn').onclick = ()=>{
+  const ta = document.getElementById('exportText');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).catch(()=>document.execCommand('copy'));
+  document.getElementById('copyBtn').textContent = '已复制 ✓';
+  setTimeout(()=>document.getElementById('copyBtn').textContent='复制', 1200);
+};
+
+build(); render();
+</script>
+</body>
+</html>

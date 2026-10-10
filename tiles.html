@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>缺氧基地布局规划器 · 瓷砖版</title>
+<style>
+  :root{
+    --bg:#0f0f0f; --surface:#161616; --line:#2a2a2a; --text:#ffffff;
+    --muted:#9a9a9a; --accent:#00fefc; --accent2:#6c80e3; --warn:#ff5964;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    height:100vh; display:flex; flex-direction:column; overflow:hidden;
+  }
+  header{
+    padding:10px 20px; border-bottom:1px solid var(--line);
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  }
+  header h1{font-size:17px; font-weight:700; letter-spacing:1px;}
+  header h1 span{color:var(--accent);}
+  header p{font-size:12px; color:var(--muted);}
+  header a{color:var(--accent); text-decoration:none;}
+  main{flex:1; display:flex; min-height:0;}
+  #panel{
+    width:252px; flex-shrink:0; border-right:1px solid var(--line);
+    padding:12px; overflow-y:auto; background:var(--surface);
+  }
+  #panel h2{font-size:12px; color:var(--muted); margin:12px 0 6px; font-weight:600; letter-spacing:2px;}
+  .toolrow{display:flex; gap:6px;}
+  .toolrow button{
+    flex:1; padding:7px; border-radius:6px; border:1px solid var(--line);
+    background:#1e1e1e; color:var(--text); font-size:13px; cursor:pointer; font-family:inherit;
+  }
+  .toolrow button.active{border-color:var(--accent); background:#1a2b2b; color:var(--accent);}
+  .cathead{font-size:11px; color:var(--accent2); margin:10px 0 4px; letter-spacing:2px; font-weight:600;}
+  .swatch{
+    display:flex; align-items:center; gap:8px; width:100%;
+    padding:6px 8px; margin-bottom:3px; border:1px solid transparent;
+    border-radius:6px; background:transparent; color:var(--text);
+    cursor:pointer; font-size:13px; text-align:left; font-family:inherit; user-select:none;
+  }
+  .swatch:hover{background:#1e1e1e;}
+  .swatch.active{border-color:var(--accent); background:#1a2b2b;}
+  .swatch .chip{width:16px; height:16px; border-radius:4px; flex-shrink:0; border:1px solid #000;}
+  .swatch .cnt{margin-left:auto; font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .sizectl{display:flex; gap:6px; align-items:center; font-size:12px; color:var(--muted);}
+  .sizectl input{
+    width:56px; background:#0a0a0a; border:1px solid var(--line); color:var(--text);
+    border-radius:4px; padding:5px; font-family:inherit; font-size:12px;
+  }
+  .sizectl button{
+    padding:5px 10px; border-radius:4px; border:1px solid var(--line);
+    background:#1e1e1e; color:var(--text); cursor:pointer; font-family:inherit; font-size:12px;
+  }
+  .actions{margin-top:10px; display:flex; flex-direction:column; gap:6px;}
+  .actions button{
+    padding:8px; border-radius:6px; border:1px solid var(--line);
+    background:#1e1e1e; color:var(--text); font-size:13px; cursor:pointer; font-family:inherit;
+  }
+  .actions button:hover{border-color:var(--accent2);}
+  .actions .row2{display:flex; gap:6px;}
+  .actions .row2 button{flex:1;}
+  #exportBtn{background:var(--accent2); border-color:var(--accent2); font-weight:600;}
+  #exportBtn:hover{filter:brightness(1.15);}
+  .hint{font-size:11px; color:var(--muted); margin-top:10px; line-height:1.7;}
+  /* 中央画布 */
+  #stage{flex:1; position:relative; min-width:0; background:#0a0a0a;}
+  #cv{position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:crosshair;}
+  #statusBar{
+    position:absolute; left:0; right:0; bottom:0; padding:5px 12px;
+    font-size:12px; color:var(--accent); background:rgba(10,10,10,.85);
+    border-top:1px solid var(--line); font-variant-numeric:tabular-nums;
+    pointer-events:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  /* 导出区 */
+  #exportWrap{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.75);
+    justify-content:center; align-items:center; z-index:10; padding:20px;
+  }
+  #exportWrap.show{display:flex;}
+  #exportBox{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    width:min(900px,95vw); max-height:85vh; display:flex; flex-direction:column; padding:16px;
+  }
+  #exportBox h3{font-size:14px; margin-bottom:10px;}
+  #exportBox h3 span{color:var(--accent); font-weight:400; font-size:12px;}
+  #exportText{
+    flex:1; min-height:300px; background:#0a0a0a; color:#d4d4d4;
+    border:1px solid var(--line); border-radius:6px; padding:10px;
+    font-family:"SF Mono",Consolas,monospace; font-size:12px; resize:none;
+  }
+  #exportBox .rowbtns{display:flex; gap:8px; margin-top:10px; justify-content:flex-end;}
+  #exportBox .rowbtns button{
+    padding:8px 16px; border-radius:6px; border:1px solid var(--line);
+    background:#1e1e1e; color:var(--text); cursor:pointer; font-family:inherit; font-size:13px;
+  }
+  #copyBtn{background:var(--accent); color:#000; border-color:var(--accent); font-weight:700;}
+  @media (max-width:760px){
+    main{flex-direction:column;}
+    #panel{width:100%; border-right:none; border-bottom:1px solid var(--line);
+      display:flex; flex-wrap:wrap; gap:4px; max-height:45%;}
+    #panel h2{width:100%;}
+    .swatch{width:auto; padding:5px 8px;}
+    .actions{width:100%;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>缺氧基地布局<span>规划器·瓷砖版</span></h1>
+  <p>1 格 = 1 个游戏单元格，自由绘制模式｜坐标原点 (0,0)=打印舱，x 东正、y 上正｜画完点「导出文本」贴回 Prompt ｜<a href="./index.html">← 返回模块规划器</a></p>
+</header>
+<main>
+  <div id="panel">
+    <h2>工具</h2>
+    <div class="toolrow">
+      <button id="tPencil" class="active">画笔</button>
+      <button id="tRect">矩形填充</button>
+    </div>
+    <h2>类型</h2>
+    <div id="palette"></div>
+    <h2>画布设置</h2>
+    <div class="sizectl">
+      宽 <input id="inW" type="number" step="2" min="32" max="512">
+      高 <input id="inH" type="number" step="2" min="32" max="512">
+      <button id="newBtn">新建</button>
+    </div>
+    <div class="actions">
+      <button id="exportBtn">导出文本（贴回 Prompt）</button>
+      <button id="pngBtn">导出 PNG 图片</button>
+      <div class="row2">
+        <button id="jsonBtn">导出 JSON</button>
+        <button id="importBtn">导入 JSON</button>
+      </div>
+      <div class="row2">
+        <button id="undoBtn">撤销</button>
+        <button id="redoBtn">重做</button>
+      </div>
+      <div class="row2">
+        <button id="fitBtn">适应窗口</button>
+        <button id="clearBtn">全部清空</button>
+      </div>
+    </div>
+    <input type="file" id="importFile" accept=".json,application/json" hidden>
+    <p class="hint">
+      左键=涂色（画笔拖动连涂 / 矩形拖框）｜右键拖动=擦除<br>
+      滚轮=缩放｜空格或中键拖动=平移｜双指捏合=缩放<br>
+      Ctrl+Z 撤销、Ctrl+Shift+Z 重做｜改动自动存浏览器<br>
+      房间上限（原版）：宿舍/卫生≤64｜餐·厨·娱·医·电≤96（大会堂 100–120）｜公园 25–100｜走廊净高≥2 格
+    </p>
+  </div>
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div id="statusBar"></div>
+  </div>
+</main>
+
+<div id="exportWrap">
+  <div id="exportBox">
+    <h3>导出结果 <span>— 复制后整段贴回 Prompt</span></h3>
+    <textarea id="exportText" readonly></textarea>
+    <div class="rowbtns">
+      <button id="copyBtn">复制</button>
+      <button id="closeBtn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ── 类型定义（index 0 = 空）───────────────────
+const TYPES = [
+  {id:'none',    cat:'基础',      name:'未分配',            short:'',   color:'#2a2a2a', dark:true},
+  {id:'wall',    cat:'结构',      name:'实心砖墙',          short:'墙', color:'#4d5364'},
+  {id:'door',    cat:'结构',      name:'门',                short:'门', color:'#8d99ae', darkText:true},
+  {id:'ladder',  cat:'结构',      name:'梯子',              short:'梯', color:'#c9ced6', darkText:true},
+  {id:'airflow', cat:'结构',      name:'透气砖',            short:'透', color:'#7fc8bc', darkText:true},
+  {id:'pipe',    cat:'结构',      name:'管线（电/水/气）',  short:'管', color:'#b388eb'},
+  {id:'dig',     cat:'结构',      name:'挖掘标记',          short:'挖', color:'#b06a28'},
+  {id:'pod',     cat:'生活',      name:'打印舱（原点）',    short:'印', color:'#ffffff', darkText:true},
+  {id:'dorm',    cat:'生活',      name:'宿舍/卧室',         short:'宿', color:'#a3b8f0', darkText:true, max:64},
+  {id:'bath',    cat:'生活',      name:'卫生间',            short:'卫', color:'#90e0ef', darkText:true, max:64},
+  {id:'hall',    cat:'生活',      name:'餐厅(大会堂100–120)',short:'餐', color:'#e76f51', max:96},
+  {id:'kitchen', cat:'生活',      name:'厨房',              short:'厨', color:'#ff6b6b', max:96},
+  {id:'rec',     cat:'生活',      name:'娱乐室',            short:'娱', color:'#ff70a6', max:96},
+  {id:'med',     cat:'生活',      name:'医疗室',            short:'医', color:'#d8bbff', darkText:true, max:96},
+  {id:'suit',    cat:'生活',      name:'气压服站',          short:'服', color:'#6c757d'},
+  {id:'research',cat:'科研',      name:'科研',              short:'研', color:'#8f6fe8'},
+  {id:'water',   cat:'水·氧·电',  name:'水处理',            short:'水', color:'#3a86ff'},
+  {id:'pool',    cat:'水·氧·电',  name:'蓄水池',            short:'池', color:'#1d6fd1'},
+  {id:'oxy',     cat:'水·氧·电',  name:'电解制氧',          short:'氧', color:'#00c2cb'},
+  {id:'h2',      cat:'水·氧·电',  name:'氢气发电',          short:'氢', color:'#ff9f1c'},
+  {id:'manual',  cat:'水·氧·电',  name:'人力发电+电池',     short:'人', color:'#ffd60a', darkText:true},
+  {id:'power',   cat:'水·氧·电',  name:'发电厂(电控站)',    short:'电', color:'#e36414', max:96},
+  {id:'hatch',   cat:'养殖·种植', name:'哈奇塔',            short:'哈', color:'#b08968'},
+  {id:'drecko',  cat:'养殖·种植', name:'壁虎塔(纤维/塑料)', short:'壁', color:'#9c6644'},
+  {id:'pacu',    cat:'养殖·种植', name:'帕库鱼池',          short:'鱼', color:'#48cae4', darkText:true},
+  {id:'shine',   cat:'养殖·种植', name:'发光虫(蛋/储备)',   short:'虫', color:'#e9ff70', darkText:true},
+  {id:'sealed',  cat:'养殖·种植', name:'封闭种养殖',        short:'种', color:'#57cc99', darkText:true},
+  {id:'farm',    cat:'养殖·种植', name:'农场(开放种植)',    short:'农', color:'#95d5b2', darkText:true},
+  {id:'industry',cat:'工业·其他', name:'工业塔',            short:'工', color:'#ef476f'},
+  {id:'oil',     cat:'工业·其他', name:'油井/精炼',         short:'油', color:'#7f5539'},
+  {id:'storage', cat:'工业·其他', name:'仓储/轨道杂间',     short:'仓', color:'#6d6875'},
+  {id:'park',    cat:'工业·其他', name:'公园/自然保护区',   short:'园', color:'#2d6a4f', min:25, max:100},
+  {id:'transit', cat:'工业·其他', name:'走廊/交通',         short:'廊', color:'#4a5160'},
+  {id:'todo',    cat:'工业·其他', name:'待开发',            short:'待', color:'#1c1c1c', dark:true},
+];
+const NONE = 0;
+const CATS = ['结构','生活','科研','水·氧·电','养殖·种植','工业·其他','基础'];
+
+// ── 状态 ─────────────────────────────────────
+let W = 120, H = 80;
+let data = new Uint16Array(W*H);
+let cur = 5;              // 默认：实心砖墙
+let tool = 'pencil';      // pencil | rect
+const view = {s:14, ox:0, oy:0};
+let dirty = true, viewInited = false;
+let painting = false, erasing = false, panning = false, spaceDown = false;
+let rectAnchor = null, rectCur = null, hover = null, panStart = null;
+const pointers = new Map();
+let pinchD0 = 0, pinchS0 = 14;
+const undoStack = [], redoStack = [];
+
+// ── 坐标：原点=画布正中心格，x 东正 y 上正 ──
+const coordX = i => i - W/2;
+const coordY = j => H/2 - j;
+
+// ── 画布 ─────────────────────────────────────
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const stage = document.getElementById('stage');
+const statusBar = document.getElementById('statusBar');
+let dpr = 1, cw = 0, ch = 0;
+
+function resize(){
+  dpr = window.devicePixelRatio || 1;
+  cw = stage.clientWidth; ch = stage.clientHeight;
+  cv.width = Math.max(1, Math.round(cw*dpr));
+  cv.height = Math.max(1, Math.round(ch*dpr));
+  if(!viewInited && cw > 0){ fitView(); viewInited = true; }
+  dirty = true;
+}
+new ResizeObserver(resize).observe(stage);
+
+function fitView(){
+  const s = Math.min((cw-60)/W, (ch-60)/H);
+  view.s = Math.max(4, Math.min(80, s));
+  view.ox = (cw - W*view.s)/2;
+  view.oy = (ch - H*view.s)/2;
+  dirty = true;
+}
+function zoomAt(mx, my, f){
+  const s2 = Math.max(4, Math.min(80, view.s*f));
+  const wx = (mx-view.ox)/view.s, wy = (my-view.oy)/view.s;
+  view.s = s2;
+  view.ox = mx - wx*s2;
+  view.oy = my - wy*s2;
+  dirty = true;
+}
+
+// ── 渲染 ─────────────────────────────────────
+function loop(){
+  if(dirty){ dirty = false; render(); }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+function render(){
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0,0,cw,ch);
+  const {s, ox, oy} = view;
+  const i0 = Math.max(0, Math.floor(-ox/s)), i1 = Math.min(W-1, Math.ceil((cw-ox)/s));
+  const j0 = Math.max(0, Math.floor(-oy/s)), j1 = Math.min(H-1, Math.ceil((ch-oy)/s));
+  if(i1 < i0 || j1 < j0){ updStatus(); return; }
+
+  for(let j=j0;j<=j1;j++){
+    const row = j*W;
+    for(let i=i0;i<=i1;i++){
+      const t = data[row+i];
+      if(!t) continue;
+      ctx.fillStyle = TYPES[t].color;
+      ctx.fillRect(ox+i*s, oy+j*s, s+0.8, s+0.8);
+    }
+  }
+  if(s >= 9){
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(let i=i0;i<=i1+1;i++){
+      const x = Math.round(ox+i*s)+.5;
+      ctx.moveTo(x, Math.max(0,oy+j0*s)); ctx.lineTo(x, Math.min(ch,oy+(j1+1)*s));
+    }
+    for(let j=j0;j<=j1+1;j++){
+      const y = Math.round(oy+j*s)+.5;
+      ctx.moveTo(Math.max(0,ox+i0*s), y); ctx.lineTo(Math.min(cw,ox+(i1+1)*s), y);
+    }
+    ctx.stroke();
+  }
+  if(s >= 22){
+    ctx.font = `600 ${Math.min(13, Math.floor(s*0.42))}px sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for(let j=j0;j<=j1;j++){
+      const row = j*W;
+      for(let i=i0;i<=i1;i++){
+        const t = data[row+i]; if(!t) continue;
+        const T = TYPES[t]; if(!T.short) continue;
+        ctx.fillStyle = T.dark ? '#666' : (T.darkText ? '#111' : '#fff');
+        ctx.fillText(T.short, ox+(i+.5)*s, oy+(j+.5)*s);
+      }
+    }
+  }
+  // 原点轴线 + 打印舱标记
+  const x0 = ox + W/2*s, y0 = oy + H/2*s;
+  ctx.strokeStyle = 'rgba(0,254,252,.30)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([5,5]);
+  ctx.beginPath();
+  if(x0 >= 0 && x0 <= cw){ ctx.moveTo(x0,0); ctx.lineTo(x0,ch); }
+  if(y0 >= 0 && y0 <= ch){ ctx.moveTo(0,y0); ctx.lineTo(cw,y0); }
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.strokeStyle = '#00fefc';
+  ctx.lineWidth = 2;
+  const m = Math.min(7, Math.max(3, s*0.35));
+  ctx.beginPath();
+  ctx.moveTo(x0-m,y0); ctx.lineTo(x0+m,y0);
+  ctx.moveTo(x0,y0-m); ctx.lineTo(x0,y0+m);
+  ctx.stroke();
+  if(s >= 16){
+    ctx.font = '10px sans-serif';
+    ctx.fillStyle = '#00fefc';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText('打印舱(0,0)', x0+7, y0-4);
+  }
+  drawRulers(i0,i1,j0,j1);
+
+  if(hover && !panning && !spaceDown){
+    ctx.strokeStyle = 'rgba(255,255,255,.65)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(ox+hover.i*s+.5, oy+hover.j*s+.5, s-1, s-1);
+  }
+  if(rectAnchor && rectCur){
+    const a = normRect(rectAnchor, rectCur);
+    const rx = ox+a.i*s, ry = oy+a.j*s, rw = a.w*s, rh = a.h*s;
+    ctx.fillStyle = 'rgba(0,254,252,.12)';
+    ctx.fillRect(rx, ry, rw, rh);
+    ctx.strokeStyle = '#00fefc';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6,4]);
+    ctx.strokeRect(rx+1, ry+1, rw-2, rh-2);
+    ctx.setLineDash([]);
+    const T = TYPES[cur], n = a.w*a.h;
+    let hint = `${a.w}×${a.h}=${n}格`;
+    let ok = true;
+    if(T.max){ ok = n <= T.max; hint += ok ? ` ✓≤${T.max}` : ` ✗超上限${T.max}`; }
+    if(T.min && n < T.min){ ok = false; hint += ` ✗<${T.min}`; }
+    ctx.font = '12px sans-serif';
+    const tw = ctx.measureText(hint).width;
+    let bx = Math.min(rx+rw+10, cw-tw-16);
+    let by = Math.min(ry+rh+8, ch-24);
+    if(bx < 4 && by < ry+rh+8) by = Math.max(4, ry-24);
+    ctx.fillStyle = 'rgba(10,10,10,.92)';
+    ctx.fillRect(bx-4, by-3, tw+10, 20);
+    ctx.fillStyle = ok ? '#00fefc' : '#ff5964';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText(hint, bx, by);
+  }
+  updStatus();
+}
+
+function drawRulers(i0,i1,j0,j1){
+  const {s, ox, oy} = view;
+  if(s < 7) return;
+  ctx.fillStyle = 'rgba(10,10,10,.7)';
+  ctx.fillRect(0,0,cw,13);
+  ctx.fillRect(0,0,34,ch);
+  ctx.fillStyle = 'rgba(255,255,255,.45)';
+  ctx.font = '9px sans-serif';
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'center';
+  for(let gx = Math.ceil(coordX(i0)/5)*5; gx <= coordX(i1); gx += 5){
+    const x = ox + (gx+W/2)*s;
+    if(x < -12 || x > cw+12) continue;
+    ctx.fillText(String(gx), x, 2);
+  }
+  ctx.textAlign = 'left';
+  for(let gy = Math.ceil(coordY(j1)/5)*5; gy <= coordY(j0); gy += 5){
+    const y = oy + (H/2-gy)*s;
+    if(y < -8 || y > ch+8) continue;
+    ctx.fillText(String(gy), 3, y);
+  }
+}
+
+function updStatus(){
+  const parts = [
+    `画布 ${W}×${H}`,
+    `缩放 ${(+view.s.toFixed(1))} px/格`,
+    `工具：${tool==='pencil' ? '画笔' : '矩形填充'}`,
+    `类型：${TYPES[cur].name}`,
+  ];
+  if(hover){
+    const i = hover.i, j = hover.j;
+    parts.push(`(${coordX(i)}, ${coordY(j)}) ${TYPES[data[j*W+i]].name}`);
+  }
+  statusBar.textContent = parts.join('　｜　');
+}
+
+// ── 调色板 ────────────────────────────────────
+const palette = document.getElementById('palette');
+CATS.forEach(cat=>{
+  const list = TYPES.map((t,i)=>({t,i})).filter(x=>x.t.cat===cat);
+  if(!list.length) return;
+  const h = document.createElement('div');
+  h.className = 'cathead'; h.textContent = cat;
+  palette.appendChild(h);
+  list.forEach(({t,i})=>{
+    const b = document.createElement('button');
+    b.className = 'swatch' + (i===cur ? ' active' : '');
+    b.dataset.i = i;
+    b.innerHTML = `<span class="chip" style="background:${t.color}${t.dark?';border:1px dashed #555':''}"></span><span>${t.name}</span><span class="cnt">0</span>`;
+    b.onclick = ()=>{
+      cur = i;
+      document.querySelectorAll('.swatch').forEach(x=>x.classList.toggle('active', +x.dataset.i===cur));
+      updStatus();
+    };
+    palette.appendChild(b);
+  });
+});
+function updateCounts(){
+  const counts = new Array(TYPES.length).fill(0);
+  data.forEach(v=>counts[v]++);
+  document.querySelectorAll('.swatch').forEach(sw=>{
+    sw.querySelector('.cnt').textContent = counts[+sw.dataset.i]||0;
+  });
+}
+
+// ── 存档 ─────────────────────────────────────
+const SKEY = 'oni-tile-planner-v1';
+function save(){
+  try{
+    localStorage.setItem(SKEY, JSON.stringify({v:1, w:W, h:H, data:Array.from(data)}));
+  }catch(e){}
+}
+let saveTimer = null;
+function saveSoon(){ clearTimeout(saveTimer); saveTimer = setTimeout(save, 600); }
+function validData(d, w, h){
+  return Array.isArray(d) && d.length === w*h && w >= 32 && h >= 32 && w <= 512 && h <= 512;
+}
+function load(){
+  try{
+    const s = JSON.parse(localStorage.getItem(SKEY));
+    if(s && s.v===1 && validData(s.data, s.w, s.h)){
+      W = s.w; H = s.h;
+      data = Uint16Array.from(s.data.map(v=>{
+        v = v|0;
+        return (v > 0 && v < TYPES.length) ? v : 0;
+      }));
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+window.addEventListener('beforeunload', save);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') save(); });
+
+// ── 撤销 / 重做 ──────────────────────────────
+function snap(){
+  undoStack.push(Array.from(data));
+  if(undoStack.length > 80) undoStack.shift();
+  redoStack.length = 0;
+}
+function undo(){
+  if(!undoStack.length) return;
+  redoStack.push(Array.from(data));
+  data = Uint16Array.from(undoStack.pop());
+  afterChange();
+}
+function redo(){
+  if(!redoStack.length) return;
+  undoStack.push(Array.from(data));
+  data = Uint16Array.from(redoStack.pop());
+  afterChange();
+}
+function afterChange(){ dirty = true; updateCounts(); saveSoon(); }
+
+// ── 交互 ─────────────────────────────────────
+function cellAt(e){
+  const r = cv.getBoundingClientRect();
+  const mx = e.clientX-r.left, my = e.clientY-r.top;
+  const i = Math.floor((mx-view.ox)/view.s), j = Math.floor((my-view.oy)/view.s);
+  return (i>=0 && i<W && j>=0 && j<H) ? {i,j} : null;
+}
+function setCell(cell, v){
+  const q = cell.j*W + cell.i;
+  if(data[q] !== v){ data[q] = v; afterChange(); }
+}
+function normRect(a,b){
+  return {
+    i: Math.min(a.i,b.i), j: Math.min(a.j,b.j),
+    w: Math.abs(a.i-b.i)+1, h: Math.abs(a.j-b.j)+1,
+  };
+}
+
+cv.addEventListener('pointerdown', e=>{
+  e.preventDefault();
+  cv.setPointerCapture(e.pointerId);
+  const r = cv.getBoundingClientRect();
+  pointers.set(e.pointerId, {x:e.clientX-r.left, y:e.clientY-r.top});
+  if(pointers.size === 2){
+    painting = false; erasing = false; rectAnchor = null; panning = false;
+    const [a,b] = [...pointers.values()];
+    pinchD0 = Math.hypot(a.x-b.x, a.y-b.y) || 1;
+    pinchS0 = view.s;
+    return;
+  }
+  if(e.button === 1 || spaceDown){
+    panning = true;
+    panStart = {mx:e.clientX-r.left, my:e.clientY-r.top, ox:view.ox, oy:view.oy};
+    return;
+  }
+  if(e.button === 2){ erasing = true; const c = cellAt(e); if(c) setCell(c, NONE); return; }
+  if(tool === 'pencil'){ painting = true; snap(); const c = cellAt(e); if(c) setCell(c, cur); }
+  else { rectAnchor = cellAt(e); rectCur = rectAnchor; if(rectAnchor) snap(); dirty = true; }
+});
+cv.addEventListener('pointermove', e=>{
+  const r = cv.getBoundingClientRect();
+  const mx = e.clientX-r.left, my = e.clientY-r.top;
+  if(pointers.has(e.pointerId)) pointers.set(e.pointerId, {x:mx, y:my});
+  if(pointers.size === 2 && pinchD0){
+    const [a,b] = [...pointers.values()];
+    const d = Math.hypot(a.x-b.x, a.y-b.y) || 1;
+    const mid = {x:(a.x+b.x)/2, y:(a.y+b.y)/2};
+    const s2 = Math.max(4, Math.min(80, pinchS0*d/pinchD0));
+    zoomAt(mid.x, mid.y, s2/view.s);
+    return;
+  }
+  if(panning){
+    view.ox = panStart.ox + (mx-panStart.mx);
+    view.oy = panStart.oy + (my-panStart.my);
+    dirty = true;
+    return;
+  }
+  const c = cellAt(e);
+  if((c && !hover) || (!c && hover) || (c && hover && (c.i!==hover.i || c.j!==hover.j))){
+    hover = c; dirty = true;
+  } else { hover = c; }
+  if(painting && c) setCell(c, cur);
+  if(erasing && c) setCell(c, NONE);
+  if(rectAnchor && c){ rectCur = c; dirty = true; }
+});
+function endPointer(e){
+  pointers.delete(e.pointerId);
+  if(pointers.size < 2) pinchD0 = 0;
+  if(panning) panning = false;
+  if(painting){ painting = false; save(); }
+  if(erasing){ erasing = false; save(); }
+  if(rectAnchor){
+    const c = cellAt(e) || rectCur;
+    if(c){
+      const a = normRect(rectAnchor, c);
+      for(let j=a.j; j<a.j+a.h; j++){
+        const row = j*W;
+        for(let i=a.i; i<a.i+a.w; i++) data[row+i] = cur;
+      }
+      afterChange(); save();
+    }
+    rectAnchor = null; rectCur = null; dirty = true;
+  }
+}
+cv.addEventListener('pointerup', endPointer);
+cv.addEventListener('pointercancel', endPointer);
+cv.addEventListener('contextmenu', e=>e.preventDefault());
+cv.addEventListener('wheel', e=>{
+  e.preventDefault();
+  const r = cv.getBoundingClientRect();
+  zoomAt(e.clientX-r.left, e.clientY-r.top, Math.exp(-e.deltaY*0.0012));
+}, {passive:false});
+
+window.addEventListener('keydown', e=>{
+  if(e.code === 'Space'){ spaceDown = true; e.preventDefault(); }
+  if((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase()==='z'){ e.preventDefault(); undo(); }
+  if((e.ctrlKey || e.metaKey) && (e.shiftKey && e.key.toLowerCase()==='z' || e.key.toLowerCase()==='y')){ e.preventDefault(); redo(); }
+});
+window.addEventListener('keyup', e=>{ if(e.code === 'Space') spaceDown = false; });
+
+// ── 面板按钮 ─────────────────────────────────
+document.getElementById('tPencil').onclick = function(){ tool='pencil'; this.classList.add('active'); document.getElementById('tRect').classList.remove('active'); dirty=true; };
+document.getElementById('tRect').onclick = function(){ tool='rect'; this.classList.add('active'); document.getElementById('tPencil').classList.remove('active'); dirty=true; };
+document.getElementById('undoBtn').onclick = undo;
+document.getElementById('redoBtn').onclick = redo;
+document.getElementById('fitBtn').onclick = fitView;
+document.getElementById('clearBtn').onclick = ()=>{
+  if(!data.some(v=>v)) return;
+  if(confirm('确定清空整个画布？（可用撤销恢复）')){
+    snap();
+    data = new Uint16Array(W*H);
+    afterChange(); save();
+  }
+};
+document.getElementById('newBtn').onclick = ()=>{
+  let w = Math.round(+document.getElementById('inW').value || W);
+  let h = Math.round(+document.getElementById('inH').value || H);
+  w = Math.max(32, Math.min(512, w + (w%2)));
+  h = Math.max(32, Math.min(512, h + (h%2)));
+  if(data.some(v=>v) && (w!==W || h!==H) && !confirm(`新建 ${w}×${h} 画布将丢弃当前布局，继续？`)) return;
+  snap();
+  W = w; H = h;
+  data = new Uint16Array(W*H);
+  undoStack.length = 0; redoStack.length = 0;
+  document.getElementById('inW').value = W;
+  document.getElementById('inH').value = H;
+  fitView(); afterChange(); save();
+};
+
+// ── 导出：矩形贪心合并 ───────────────────────
+function decompose(){
+  const seen = new Uint8Array(W*H);
+  const rects = [];
+  for(let j=0;j<H;j++){
+    for(let i=0;i<W;i++){
+      const id = j*W+i;
+      if(seen[id] || !data[id]) continue;
+      const t = data[id];
+      let w = 1;
+      while(i+w < W && !seen[id+w] && data[id+w]===t) w++;
+      let h = 1;
+      outer:
+      while(j+h < H){
+        for(let k=0;k<w;k++){
+          const q = (j+h)*W + i + k;
+          if(seen[q] || data[q]!==t) break outer;
+        }
+        h++;
+      }
+      for(let b=0;b<h;b++)
+        for(let k=0;k<w;k++) seen[(j+b)*W+i+k] = 1;
+      rects.push({t, i, j, w, h});
+    }
+  }
+  return rects;
+}
+function buildExportText(){
+  const rects = decompose();
+  const counts = new Array(TYPES.length).fill(0);
+  data.forEach(v=>counts[v]++);
+  const L = [];
+  L.push('缺氧基地布局（瓷砖级 · 1格=1游戏单元格）');
+  L.push(`画布 ${W}×${H} 格｜坐标原点(0,0)=打印舱｜x 东正、y 上正（坐标均为包含端点的格坐标）`);
+  L.push('');
+  L.push('区域矩形清单（贪心合并，左上角→右下角）：');
+  TYPES.forEach((T,ti)=>{
+    if(ti === NONE || !counts[ti]) return;
+    const rs = rects.filter(r=>r.t===ti);
+    L.push(`【${T.name}】共 ${counts[ti]} 格，${rs.length} 块：`);
+    rs.forEach(r=>{
+      const x1 = coordX(r.i), x2 = x1 + r.w - 1;
+      const y1 = coordY(r.j), y2 = y1 - r.h + 1;
+      const n = r.w*r.h;
+      let line = `- (${x1},${y1})~(${x2},${y2})　${r.w}×${r.h}=${n}格`;
+      if(T.max && n > T.max) line += ` ⚠超房间上限${T.max}`;
+      if(T.min && n < T.min) line += ` ⚠小于下限${T.min}`;
+      L.push(line);
+    });
+  });
+  L.push('');
+  L.push('格数统计：');
+  TYPES.forEach((T,ti)=>{
+    if(ti !== NONE && counts[ti]) L.push(`- ${T.name}：${counts[ti]} 格`);
+  });
+  return L.join('\n');
+}
+
+// ── 导出 / 导入 ──────────────────────────────
+document.getElementById('exportBtn').onclick = ()=>{
+  document.getElementById('exportText').value = buildExportText();
+  document.getElementById('exportWrap').classList.add('show');
+};
+document.getElementById('closeBtn').onclick = ()=>document.getElementById('exportWrap').classList.remove('show');
+document.getElementById('exportWrap').addEventListener('click', e=>{
+  if(e.target.id === 'exportWrap') e.target.classList.remove('show');
+});
+document.getElementById('copyBtn').onclick = ()=>{
+  const ta = document.getElementById('exportText');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).catch(()=>document.execCommand('copy'));
+  document.getElementById('copyBtn').textContent = '已复制 ✓';
+  setTimeout(()=>document.getElementById('copyBtn').textContent='复制', 1200);
+};
+
+function download(href, name){
+  const a = document.createElement('a');
+  a.href = href; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+document.getElementById('pngBtn').onclick = ()=>{
+  const ps = Math.max(2, Math.min(24, Math.floor(2400/Math.max(W,H))));
+  const c = document.createElement('canvas');
+  c.width = W*ps; c.height = H*ps;
+  const g = c.getContext('2d');
+  g.fillStyle = '#0a0a0a';
+  g.fillRect(0,0,c.width,c.height);
+  for(let j=0;j<H;j++){
+    for(let i=0;i<W;i++){
+      const t = data[j*W+i]; if(!t) continue;
+      g.fillStyle = TYPES[t].color;
+      g.fillRect(i*ps, j*ps, ps, ps);
+    }
+  }
+  if(ps >= 14){
+    g.font = `600 ${Math.floor(ps*0.45)}px sans-serif`;
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    for(let j=0;j<H;j++)for(let i=0;i<W;i++){
+      const t = data[j*W+i]; if(!t || !TYPES[t].short) continue;
+      const T = TYPES[t];
+      g.fillStyle = T.dark ? '#666' : (T.darkText ? '#111' : '#fff');
+      g.fillText(T.short, (i+.5)*ps, (j+.5)*ps);
+    }
+  }
+  g.strokeStyle = '#00fefc';
+  g.lineWidth = Math.max(1, ps*0.08);
+  const cx0 = W/2*ps, cy0 = H/2*ps, mm = Math.max(4, ps*0.6);
+  g.beginPath();
+  g.moveTo(cx0-mm,cy0); g.lineTo(cx0+mm,cy0);
+  g.moveTo(cx0,cy0-mm); g.lineTo(cx0,cy0+mm);
+  g.stroke();
+  g.fillStyle = '#00fefc';
+  g.font = `${Math.max(10, Math.floor(ps*0.5))}px sans-serif`;
+  g.textAlign = 'left'; g.textBaseline = 'bottom';
+  g.fillText('打印舱(0,0)', cx0+ps*0.6, cy0-ps*0.3);
+  download(c.toDataURL('image/png'), 'oni-layout.png');
+};
+document.getElementById('jsonBtn').onclick = ()=>{
+  const blob = new Blob([JSON.stringify({app:'oni-tile-planner', v:1, w:W, h:H, data:Array.from(data)})],
+    {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  download(url, 'oni-layout.json');
+  setTimeout(()=>URL.revokeObjectURL(url), 5000);
+};
+document.getElementById('importBtn').onclick = ()=>document.getElementById('importFile').click();
+document.getElementById('importFile').addEventListener('change', function(){
+  const f = this.files[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = ()=>{
+    try{
+      const s = JSON.parse(rd.result);
+      if(s && validData(s.data, s.w, s.h)){
+        W = s.w; H = s.h;
+        data = Uint16Array.from(s.data.map(v=>{ v=v|0; return (v>0 && v<TYPES.length) ? v : 0; }));
+        undoStack.length = 0; redoStack.length = 0;
+        document.getElementById('inW').value = W;
+        document.getElementById('inH').value = H;
+        fitView(); afterChange(); save();
+      } else {
+        alert('文件格式不正确（需要 oni-tile-planner v1 的 JSON）');
+      }
+    }catch(e){ alert('无法解析 JSON 文件'); }
+  };
+  rd.readAsText(f);
+  this.value = '';
+});
+
+// ── 启动 ─────────────────────────────────────
+if(load()){
+  document.getElementById('inW').value = W;
+  document.getElementById('inH').value = H;
+} else {
+  document.getElementById('inW').value = W;
+  document.getElementById('inH').value = H;
+}
+updateCounts();
+</script>
+</body>
+</html>

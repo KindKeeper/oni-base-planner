@@ -300,15 +300,29 @@ function loop(){
 }
 requestAnimationFrame(loop);
 
+// 圆角矩形路径：房间色块/门/悬停用圆角，砖结构保持锐利
+function rr(x, y, w, h, r){
+  r = Math.max(0, Math.min(r, w/2, h/2));
+  ctx.beginPath();
+  if(ctx.roundRect){ ctx.roundRect(x, y, w, h, r); return; }
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+
 function render(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.fillStyle = '#0a0a0a';
   ctx.fillRect(0,0,cw,ch);
   const {s, ox, oy} = view;
+  const rRoom = Math.min(s*0.9, 9);
 
   // 通道井（11 条，每条 3 砖宽，纵贯全高：管/梯/杆）
   ctx.fillStyle = '#141924';
-  for(let c=0;c<NC;c++) ctx.fillRect(ox+(c*TW+10)*s, oy+s, 3*s, (HT-2)*s);
+  for(let c=0;c<NC;c++){ rr(ox+(c*TW+10)*s, oy+s, 3*s, (HT-2)*s, Math.min(s*0.8, 8)); ctx.fill(); }
   if(s >= 8){
     ctx.font = `${Math.floor(s*0.75)}px sans-serif`;
     ctx.fillStyle = 'rgba(122,144,182,.55)';
@@ -339,19 +353,21 @@ function render(){
   ctx.fillRect(ox, oy+(HT-1)*s, WT*s, s);
   ctx.fillRect(ox+(WT-1)*s, oy, s, HT*s);
 
-  // 房间内空填色
+  // 房间内空填色（圆角色块）
   for(let r=0;r<NR;r++){
     for(let c=0;c<NC;c++){
       const t = grid[r][c];
       const T = TYPE_MAP[t];
       const m = modInterior(c,r);
       ctx.fillStyle = t==='none' ? '#202024' : T.color;
-      ctx.fillRect(ox+m.x*s, oy+m.y*s, m.w*s, m.h*s);
+      rr(ox+m.x*s, oy+m.y*s, m.w*s, m.h*s, rRoom);
+      ctx.fill();
       if(t === 'todo'){
         ctx.strokeStyle = '#3a3a3a';
         ctx.lineWidth = 1;
         ctx.setLineDash([4,3]);
-        ctx.strokeRect(ox+m.x*s+2, oy+m.y*s+2, m.w*s-4, m.h*s-4);
+        rr(ox+m.x*s+2, oy+m.y*s+2, m.w*s-4, m.h*s-4, rRoom);
+        ctx.stroke();
         ctx.setLineDash([]);
       }
       if(s >= 6 && T.short){
@@ -362,19 +378,20 @@ function render(){
       }
     }
   }
-  // 门（左右墙中部各 2 格，1 宽 × 2 高）
+  // 门（左右墙中部各 2 格，1 宽 × 2 高，圆角）
+  const rDoor = Math.min(3, s*0.35);
   for(let r=0;r<NR;r++){
     for(let c=0;c<NC;c++){
       if(!hasDoor(grid[r][c])) continue;
       const dy = oy + (1+r*TH+1)*s;
       const lx = ox + (c*TW)*s, rx = ox + (c*TW+9)*s;
       ctx.fillStyle = '#c9ced6';
-      ctx.fillRect(lx, dy, s, 2*s);
-      ctx.fillRect(rx, dy, s, 2*s);
+      rr(lx, dy, s, 2*s, rDoor); ctx.fill();
+      rr(rx, dy, s, 2*s, rDoor); ctx.fill();
       ctx.strokeStyle = 'rgba(0,0,0,.55)';
       ctx.lineWidth = 1;
-      ctx.strokeRect(lx+.5, dy+.5, s-1, 2*s-1);
-      ctx.strokeRect(rx+.5, dy+.5, s-1, 2*s-1);
+      rr(lx+.5, dy+.5, s-1, 2*s-1, rDoor); ctx.stroke();
+      rr(rx+.5, dy+.5, s-1, 2*s-1, rDoor); ctx.stroke();
     }
   }
   // 原点轴线（打印舱内空左上角 = 模块/瓷砖双 (0,0)）
@@ -407,7 +424,8 @@ function render(){
     const hx = ox + (hover.c*TW)*s, hy = oy + (1+hover.r*TH)*s;
     ctx.strokeStyle = '#00fefc';
     ctx.lineWidth = 2;
-    ctx.strokeRect(hx+1, hy+1, TW*s-2, TH*s-2);
+    rr(hx+1, hy+1, TW*s-2, TH*s-2, Math.min(s*0.9, 9));
+    ctx.stroke();
   }
   updStatus();
 }

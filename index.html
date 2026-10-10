@@ -109,7 +109,7 @@
 <body>
 <header>
   <h1>缺氧基地布局<span>涂色板</span></h1>
-  <p>每格 = 1 个 4×8 模块单元（柱网 13 格宽）｜竖向相邻两格合并 = 72 格双联房｜坐标系：原点 (0,0)=打印舱单元（基地中×中4），x 东正、y 上正｜左侧选房间类型，点/拖格子涂色，涂完点「导出文本」贴回 Prompt</p>
+  <p>每格 = 1 个 4×8 模块单元（柱网 13 格宽）｜竖向相邻两格合并 = 72 格双联房｜坐标系：原点 (0,0)=打印舱单元（基地中×中4），x 右正、y 上正｜左侧选房间类型，点/拖格子涂色，涂完点「导出文本」贴回 Prompt</p>
 </header>
 <main>
   <div id="panel">
@@ -181,10 +181,10 @@ const TYPES = [
 const TYPE_MAP = Object.fromEntries(TYPES.map(t=>[t.id,t]));
 
 // ── 网格定义：11 列 × 15 行 ──────────────────
-const COLS = ['左外②','左外①','左二列','左一列','基地西','基地中','基地东','右一列','右二列','右外①','右外②'];
+const COLS = ['左外②','左外①','左二列','左一列','基地左','基地中','基地右','右一列','右二列','右外①','右外②'];
 const ROWS = ['上开1','上开2','上开3','交通·上','中1','中2','中3','中4','中5','中6','中7','交通·下','下开1','下开2','下开3'];
 const NR = ROWS.length, NC = COLS.length;
-// 坐标系：原点(0,0)=打印舱所在单元（基地中×中4），x 向东为正，y 向上为正
+// 坐标系：原点(0,0)=打印舱所在单元（基地中×中4），x 向右为正，y 向上为正
 const coordX = c => c-5;
 const coordY = r => 7-r;
 
@@ -321,7 +321,7 @@ document.getElementById('clearBtn').onclick = ()=>{ grid = Array.from({length:NR
 document.getElementById('exportBtn').onclick = ()=>{
   const lines = [];
   lines.push('基地总布局涂色表（每格=1 个 4×8 模块单元，柱网 13 格宽）');
-  lines.push('坐标系：原点 (0,0)=打印舱所在单元（基地中×中4），x 东正、y 上正');
+  lines.push('坐标系：原点 (0,0)=打印舱所在单元（基地中×中4），x 右正、y 上正');
   lines.push('');
   lines.push('| 行＼列 | ' + COLS.map((c,i)=>`${c}(x=${coordX(i)})`).join(' | ') + ' |');
   lines.push('|' + '---|'.repeat(NC+1));
